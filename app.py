@@ -65,3 +65,6 @@ def reset():
     db.execute('DELETE FROM reserves WHERE gift_id=?',(gift_id,))
     db.commit()
     return "OK"
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
