@@ -2,8 +2,8 @@ from flask import Flask, request, jsonify, render_template
 import sqlite3, time, hmac, hashlib, os
 
 app = Flask(__name__)
-BOT_TOKEN = os.getenv("BOT_TOKEN")  # токен твоего Telegram-бота
-ADMIN_IDS = [877872483]  # твой Telegram ID
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_IDS = [877872483]
 
 def verify_telegram(data):
     check = "\n".join(f"{k}={data[k]}" for k in sorted(data) if k != 'hash')
