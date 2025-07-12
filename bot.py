@@ -28,7 +28,7 @@ async def admin_link(message: Message):
         return
 
     params = {
-        "id": user.id,
+        "id": str(user.id),
         "username": user.username or "",
         "auth_date": int(time.time()),
     }
