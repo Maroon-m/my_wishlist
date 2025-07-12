@@ -17,12 +17,26 @@ async def cmd_start(message: Message):
     await message.answer("👋 Привет! Напиши /admin, чтобы получить ссылку на админку.")
 
 @dp.message(Command("admin"))
-async def cmd_admin(message: Message):
-    if message.from_user.id not in ADMIN_IDS:
-        await message.answer("🚫 У тебя нет доступа.")
+async def admin_link(message: Message):
+    user = message.from_user
+    if user.id not in ADMIN_IDS:
+        await message.answer("⛔ У тебя нет доступа.")
         return
-    url = f"{BACKEND_URL}/admin?user_id={message.from_user.id}"
-    await message.answer(f"👑 Вот админка:\n<a href=\"{url}\">Открыть админку</a>")
+
+    params = {
+        "id": user.id,
+        "username": user.username or "",
+        "auth_date": int(time.time()),
+    }
+    check = "\n".join(f"{k}={params[k]}" for k in sorted(params))
+    secret = hashlib.sha256(BOT_TOKEN.encode()).digest()
+    params["hash"] = hmac.new(secret, check.encode(), hashlib.sha256).hexdigest()
+
+    query = "&".join(f"{k}={v}" for k, v in params.items())
+    link = f"https://my-wishlist.onrender.com/admin?{query}"
+
+    await message.answer(f"🔐 <a href='{link}'>Открыть админку</a>", parse_mode="HTML")
+
 
 @dp.message(Command("reset"))
 async def cmd_reset(message: Message):
