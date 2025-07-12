@@ -1,7 +1,10 @@
 from flask import Flask, request, jsonify, render_template
 import sqlite3, time, hmac, hashlib, os
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
+
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_IDS = [877872483]
 
