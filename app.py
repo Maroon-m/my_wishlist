@@ -10,12 +10,14 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_IDS = [877872483]
 
 def verify_telegram(data):
-    allowed_keys = ['id', 'username', 'auth_date']
-    check = "\n".join(f"{k}={data[k]}" for k in sorted(allowed_keys) if k in data)
+    check = "\n".join(f"{k}={data[k]}" for k in sorted(data) if k != 'hash')
     secret = hashlib.sha256(BOT_TOKEN.encode()).digest()
     if hmac.new(secret, check.encode(), hashlib.sha256).hexdigest() != data['hash']:
         return False
+    if time.time() - int(data.get('auth_date', 0)) > 86400:
+        return False
     return True
+
 
 
 def get_db():
