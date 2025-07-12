@@ -66,5 +66,19 @@ def reset():
     db.commit()
     return "OK"
 
+@app.route('/init')
+def init_db():
+    sample = [
+        (1, "Модель Breyer Catch Me", "Можно выловить на Авито", "https://www.breyerhorses.com/products/catch-me"),
+        (2, "Instax фотоаппарат", "Или белый Polaroid, но он дороже", "https://www.ozon.ru/product/fotoapparat-mgnovennoy-pechati-fujifilm-mini-12-zelenyy-1047331780/?at=..."),
+        (3, "Сессия с психологом", "", ""),
+        (4, "МРФ-ролик", "", ""),
+        (5, "Ручной отпариватель", "", "")
+    ]
+    db.executemany('INSERT OR IGNORE INTO gifts VALUES (?,?,?,?)', sample)
+    db.commit()
+    return "База заполнена"
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
