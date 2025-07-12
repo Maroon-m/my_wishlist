@@ -28,7 +28,7 @@ async def admin_link(message: Message):
         return
 
     params = {
-        "user_id": user.id,
+        "id": user.id,
         "username": user.username or "",
         "auth_date": int(time.time()),
     }
@@ -48,7 +48,7 @@ async def cmd_reset(message: Message):
         return
     import aiohttp
     async with aiohttp.ClientSession() as s:
-        r = await s.post(f"{BACKEND_URL}/admin/reset", json={"user_id": message.from_user.id})
+        r = await s.post(f"{BACKEND_URL}/admin/reset", json={"id": message.from_user.id})
         if r.status == 200:
             await message.answer("✅ Все бронирования сброшены.")
         else:
