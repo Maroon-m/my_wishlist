@@ -28,7 +28,7 @@ async def admin_link(message: Message):
         return
 
     params = {
-        "id": user.id,
+        "user_id": user.id,
         "username": user.username or "",
         "auth_date": int(time.time()),
     }
@@ -40,7 +40,6 @@ async def admin_link(message: Message):
     link = f"https://my-wishlist.onrender.com/admin?{query}"
 
     await message.answer(f"🔐 <a href='{link}'>Открыть админку</a>", parse_mode="HTML")
-
 
 @dp.message(Command("reset"))
 async def cmd_reset(message: Message):
