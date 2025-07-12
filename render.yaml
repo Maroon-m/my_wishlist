@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: wishlist-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+
+  - type: worker
+    name: wishlist-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
