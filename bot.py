@@ -53,6 +53,7 @@ async def cmd_reset(message: Message):
             await message.answer("❌ Не удалось сбросить бронирования.")
 
 async def main():
+    print(">>> Bot polling will start now")
     # 🚀 Запускаем aiogram
     asyncio.create_task(dp.start_polling(bot))
 
