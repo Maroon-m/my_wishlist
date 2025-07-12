@@ -15,8 +15,6 @@ def verify_telegram(data):
     secret = hashlib.sha256(BOT_TOKEN.encode()).digest()
     if hmac.new(secret, check.encode(), hashlib.sha256).hexdigest() != data['hash']:
         return False
-    if time.time() - int(data.get('auth_date', 0)) > 86400:
-        return False
     return True
 
 
