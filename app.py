@@ -10,7 +10,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_IDS = [877872483]
 
 def verify_telegram(data):
-    allowed_keys = ['auth_date', 'user_id', 'username']
+    allowed_keys = ['auth_date', 'id', 'username']
     check = "\n".join(f"{k}={data[k]}" for k in sorted(allowed_keys) if k in data)
     secret = hashlib.sha256(BOT_TOKEN.encode()).digest()
     if hmac.new(secret, check.encode(), hashlib.sha256).hexdigest() != data['hash']:
@@ -75,14 +75,14 @@ def reserve():
 @app.route('/admin')
 def admin():
     user = request.args
-    uid = user.get("user_id")
+    uid = user.get("id")
     if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
         return "No access", 403
 
     rows = db.execute('SELECT gift_id, tg_id, username, timestamp FROM reserves').fetchall()
     html_out = '<h1>Админка</h1>\n<table><tr><th>Подарок</th><th>ID</th><th>Логин</th><th>Время</th><th>Сброс</th></tr>'
     for g, tid, un, ts in rows:
-        link = f'/admin/reset?gift_id={g}&user_id={uid}&hash={user["hash"]}&auth_date={user["auth_date"]}&username={user.get("username", "")}'
+        link = f'/admin/reset?gift_id={g}&id={uid}&hash={user["hash"]}&auth_date={user["auth_date"]}&username={user.get("username", "")}'
         html_out += f'<tr><td>{g}</td><td>{tid}</td><td>@{html.escape(un)}</td><td>{time.ctime(ts)}</td>' \
                     f'<td><a href="{link}">Сброс</a></td></tr>'
     html_out += '</table>'
@@ -91,7 +91,7 @@ def admin():
 @app.route('/admin/reset')
 def reset():
     user = request.args
-    uid = user.get("user_id")
+    uid = user.get("id")
     if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
         return "No access", 403
 
