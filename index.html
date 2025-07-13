@@ -106,22 +106,29 @@
       button.innerText = gift.reserved ? 'Забронировано' : 'Забронировать';
       button.disabled = gift.reserved || !user;
 
-      button.onclick = async () => {
-        if (!confirm(`Забронировать "${gift.title}"?`)) return;
+button.onclick = async () => {
+  if (!user) {
+    alert("Пожалуйста, авторизуйтесь через Telegram, чтобы забронировать подарок.");
+    return;
+  }
 
-        const response = await fetch("/reserve", {
-          method: "POST",
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ gift_id: gift.id, user })
-        });
+  const confirmed = confirm("Вы точно хотите забронировать этот подарок?");
+  if (!confirmed) return;
 
-        if (response.ok) {
-          loadGifts();
-        } else {
-          const error = await response.json();
-          alert(error.error || 'Ошибка бронирования');
-        }
-      };
+  const response = await fetch("https://my-wishlist.onrender.com/reserve", {
+    method: "POST",
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ gift_id: gift.id, user })
+  });
+
+  if (response.ok) {
+    loadGifts();
+  } else {
+    const error = await response.json();
+    alert(error.error || 'Ошибка бронирования');
+  }
+};
+
 
       card.innerHTML = title + desc + link;
       card.appendChild(button);
