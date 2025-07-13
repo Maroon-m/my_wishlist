@@ -17,6 +17,13 @@
     color: #6C4E5B;
   }
 
+  h2 {
+    margin-top: 40px;
+    color: #6C4E5B;
+    border-bottom: 2px solid #E0D6CD;
+    padding-bottom: 4px;
+  }
+
   .card {
     background: #F0E7DC;
     border-radius: 12px;
@@ -54,27 +61,34 @@
     background: #2f6a62;
   }
 
-  .card button[disabled] {
+  .card button[disabled].reserved {
     background: #ccc;
     cursor: default;
   }
-</style>
 
-
+  .card button[disabled]:not(.reserved) {
+    background: #3A7D72;
+    opacity: 0.6;
+    cursor: default;
+    color: #fff;
+  }
+  </style>
 </head>
 <body>
 
 <h1>Привет! Это мой вишлист 🎁</h1>
-<p>Ниже список приятных штук, которые можно подарить. Чтобы забронировать — войди через Telegram 👇</p>
- 
-  <!-- Telegram Login Widget -->
-  <script async src="https://telegram.org/js/telegram-widget.js?22"
-    data-telegram-login="MariiaWishlistBot" 
-    data-size="large"
-    data-userpic="false"
-    data-onauth="onTelegramAuth(user)">
-  </script>
-  
+<p>Не обязательно выбирать что-то из списка, мне приятно любое внимание💕</p>
+<p>👇Но вот список вещиц, о которых я мечтаю или просто очень хочу😄</p>
+<p>Чтобы забронировать — войди через Telegram</p>
+
+<!-- Telegram Login Widget -->
+<script async src="https://telegram.org/js/telegram-widget.js?22"
+  data-telegram-login="MariiaWishlistBot"
+  data-size="large"
+  data-userpic="false"
+  data-onauth="onTelegramAuth(user)">
+</script>
+
 <div id="list">
   <p>Загрузка...</p>
 </div>
@@ -94,52 +108,64 @@
     const container = document.getElementById('list');
     container.innerHTML = '';
 
-    gifts.forEach(gift => {
-      const card = document.createElement('div');
-      card.className = 'card';
+    const categories = {};
+    for (const gift of gifts) {
+      if (!categories[gift.category]) categories[gift.category] = [];
+      categories[gift.category].push(gift);
+    }
 
-      const title = `<h3>${gift.title}</h3>`;
-      const desc = gift.desc ? `<p>${gift.desc}</p>` : '';
-      const link = gift.link ? `<p><a href="${gift.link}" target="_blank">Ссылка на подарок</a></p>` : '';
+    for (const [category, items] of Object.entries(categories)) {
+      const header = document.createElement('h2');
+      header.innerText = category;
+      container.appendChild(header);
 
-      const button = document.createElement('button');
-      button.innerText = gift.reserved ? 'Забронировано' : 'Забронировать';
-      button.disabled = gift.reserved || !user;
+      items.forEach(gift => {
+        const card = document.createElement('div');
+        card.className = 'card';
 
-button.onclick = async () => {
-  if (!user) {
-    alert("Пожалуйста, авторизуйтесь через Telegram, чтобы забронировать подарок.");
-    return;
+        const title = `<h3>${gift.title}</h3>`;
+        const desc = gift.desc ? `<p>${gift.desc}</p>` : '';
+        const link = gift.link ? `<p><a href="${gift.link}" target="_blank">Ссылка на подарок</a></p>` : '';
+
+        const button = document.createElement('button');
+        button.innerText = gift.reserved ? 'Забронировано' : 'Забронировать';
+        button.disabled = gift.reserved || !user;
+        if (gift.reserved) button.classList.add('reserved');
+
+        button.onclick = async () => {
+          if (!user) {
+            alert("Пожалуйста, авторизуйтесь через Telegram, чтобы забронировать подарок.");
+            return;
+          }
+
+          const confirmed = confirm("Вы точно хотите забронировать этот подарок?");
+          if (!confirmed) return;
+
+          const response = await fetch("https://my-wishlist.onrender.com/reserve", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gift_id: gift.id, user })
+          });
+
+          if (response.ok) {
+            loadGifts();
+          } else {
+            const error = await response.json();
+            alert(error.error || 'Ошибка бронирования');
+          }
+        };
+
+        card.innerHTML = title + desc + link;
+        card.appendChild(button);
+        container.appendChild(card);
+      });
+    }
   }
 
-  const confirmed = confirm("Вы точно хотите забронировать этот подарок?");
-  if (!confirmed) return;
-
-  const response = await fetch("https://my-wishlist.onrender.com/reserve", {
-    method: "POST",
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ gift_id: gift.id, user })
-  });
-
-  if (response.ok) {
-    loadGifts();
-  } else {
-    const error = await response.json();
-    alert(error.error || 'Ошибка бронирования');
-  }
-};
-
-
-      card.innerHTML = title + desc + link;
-      card.appendChild(button);
-      container.appendChild(card);
-    });
-  }
-
-  // показать даже без авторизации
+  // показать список сразу
   loadGifts();
 
-  // если Telegram WebApp уже передал initData
+  // Telegram WebApp fallback
   if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe?.user) {
     user = Telegram.WebApp.initDataUnsafe.user;
     loadGifts();
