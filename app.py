@@ -152,14 +152,14 @@ def admin():
         dt = datetime.fromtimestamp(r["timestamp"], tz=tz_msk).strftime("%Y-%m-%d %H:%M:%S")
         link = f'/admin/reset?gift_id={r["gift_id"]}&id={uid}&hash={user["hash"]}&auth_date={user["auth_date"]}&username={user.get("username", "")}'
         uname = html.escape(r["username"] or "")
-        html_out += f'
+        html_out += f"""
         <tr>
           <td>{r["gift_id"]}</td>
           <td>{r["tg_id"]}</td>
           <td><span class="clickable" onclick="reveal(this, '{uname}')">👁 Показать</span></td>
           <td>{dt}</td>
           <td><a href="{link}">Сброс</a></td>
-        </tr>'
+        </tr>"""
 
     html_out += "</table>"
 
