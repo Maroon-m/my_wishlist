@@ -136,8 +136,8 @@ def admin():
         .clickable { cursor: pointer; color: #999; }
       </style>
       <script>
-        function reveal(span, username) {
-          span.innerText = '@' + username;
+        function reveal(span, text) {
+          span.innerText = text;
           span.style.color = '#000';
         }
       </script>
@@ -154,9 +154,9 @@ def admin():
         uname = html.escape(r["username"] or "")
         html_out += f"""
         <tr>
-          <td>{r["gift_id"]}</td>
+          <td><span class="clickable" onclick="reveal(this, '{r["gift_id"]}')">👁 Рассекретить</span></td>
           <td>{r["tg_id"]}</td>
-          <td><span class="clickable" onclick="reveal(this, '{uname}')">👁 Рассекретить</span></td>
+          <td><span class="clickable" onclick="reveal(this, '@{uname}')">👁 Рассекретить</span></td>
           <td>{dt}</td>
           <td><a href="{link}">Сброс</a></td>
         </tr>"""
@@ -174,7 +174,7 @@ def admin():
         html_out += f"""
         <tr>
           <td>{a["tg_id"]}</td>
-          <td><span class="clickable" onclick="reveal(this, '{uname}')">👁 Рассекретить</span></td>
+          <td><span class="clickable" onclick="reveal(this, '@{uname}')">👁 Рассекретить</span></td>
           <td>{dt}</td>
         </tr>
         """
