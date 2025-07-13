@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import time, hmac, hashlib, os, html
+from datetime import datetime, timedelta, timezone
 from flask_cors import CORS
 import psycopg
 from psycopg.rows import dict_row
@@ -90,7 +91,7 @@ def reserve():
     tg_id, uname = user.get('id'), user.get('username', '')
 
     if not tg_id:
-        return jsonify({"error": "user id missing"}), 400
+        return jsonify({"error": "Ошибка входа, обратись к администратору сайта"}), 400
 
     with db.cursor() as cur:
         cur.execute('SELECT count(*) FROM reserves WHERE tg_id=%s;', (tg_id,))
@@ -99,11 +100,11 @@ def reserve():
             "INSERT INTO overlimit_attempts VALUES (%s, %s, %s);",
             (tg_id, uname, int(time.time()))
             )
-            return jsonify({"error": "limit reached"}), 400
+            return jsonify({"error": "Ты не можешь забронировать больше трех подарков"}), 400
 
         cur.execute('SELECT 1 FROM reserves WHERE gift_id=%s;', (gift_id,))
         if cur.fetchone():
-            return jsonify({"error": "already reserved"}), 400
+            return jsonify({"error": "Этот подарок уже забронирован"}), 400
 
         cur.execute('INSERT INTO reserves VALUES (%s, %s, %s, %s);', (gift_id, tg_id, uname, int(time.time())))
         return jsonify({"ok": True})
@@ -115,25 +116,70 @@ def admin():
     if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
         return "No access", 403
 
+    tz_msk = timezone(timedelta(hours=3))  # МСК
+
     with db.cursor() as cur:
         cur.execute('SELECT gift_id, tg_id, username, timestamp FROM reserves;')
         rows = cur.fetchall()
 
-    html_out = '<h1>Админка</h1>\n<table><tr><th>Подарок</th><th>ID</th><th>Логин</th><th>Время</th><th>Сброс</th></tr>'
+    html_out = """
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+      <meta charset="UTF-8">
+      <title>Админка</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 32px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f5f5f5; }
+        .clickable { cursor: pointer; color: #999; }
+      </style>
+      <script>
+        function reveal(span, username) {
+          span.innerText = '@' + username;
+          span.style.color = '#000';
+        }
+      </script>
+    </head>
+    <body>
+    <h1>Админка</h1>
+    <table>
+      <tr><th>Подарок</th><th>ID</th><th>Логин</th><th>Время (МСК)</th><th>Сброс</th></tr>
+    """
+
     for r in rows:
+        dt = datetime.fromtimestamp(r["timestamp"], tz=tz_msk).strftime("%Y-%m-%d %H:%M:%S")
         link = f'/admin/reset?gift_id={r["gift_id"]}&id={uid}&hash={user["hash"]}&auth_date={user["auth_date"]}&username={user.get("username", "")}'
-        html_out += f'<tr><td>{r["gift_id"]}</td><td>{r["tg_id"]}</td><td>@{html.escape(r["username"] or "")}</td><td>{time.ctime(r["timestamp"])}</td>' \
-                    f'<td><a href="{link}">Сброс</a></td></tr>'
-    html_out += '</table>'
+        uname = html.escape(r["username"] or "")
+        html_out += f'
+        <tr>
+          <td>{r["gift_id"]}</td>
+          <td>{r["tg_id"]}</td>
+          <td><span class="clickable" onclick="reveal(this, '{uname}')">👁 Показать</span></td>
+          <td>{dt}</td>
+          <td><a href="{link}">Сброс</a></td>
+        </tr>'
+
+    html_out += "</table>"
+
     with db.cursor() as cur:
         cur.execute("SELECT tg_id, username, timestamp FROM overlimit_attempts ORDER BY timestamp DESC LIMIT 10;")
         attempts = cur.fetchall()
 
-    html_out += '<h2>Попытки переброни</h2>\n<table><tr><th>ID</th><th>Логин</th><th>Время</th></tr>'
+    html_out += "<h2>Попытки переброни</h2>\n<table><tr><th>ID</th><th>Логин</th><th>Время (МСК)</th></tr>"
     for a in attempts:
-        html_out += f'<tr><td>{a["tg_id"]}</td><td>@{html.escape(a["username"] or "")}</td><td>{time.ctime(a["timestamp"])}</td></tr>'
-    html_out += '</table>'
+        dt = datetime.fromtimestamp(a["timestamp"], tz=tz_msk).strftime("%Y-%m-%d %H:%M:%S")
+        uname = html.escape(a["username"] or "")
+        html_out += f"""
+        <tr>
+          <td>{a["tg_id"]}</td>
+          <td><span class="clickable" onclick="reveal(this, '{uname}')">👁 показать</span></td>
+          <td>{dt}</td>
+        </tr>
+        """
 
+    html_out += "</table></body></html>"
     return html_out
 
 @app.route('/admin/reset')
