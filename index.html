@@ -4,194 +4,204 @@
   <meta charset="UTF-8">
   <title>Мой вишлист 🎁</title>
   <style>
-    body {
-      background: #FAF8F5;
-      color: #333;
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: auto;
-      padding: 20px;
-    }
-
-    h1 {
-      color: #6C4E5B;
-    }
-
-    .category {
-      margin-top: 32px;
-      margin-bottom: 8px;
-      font-weight: bold;
-      font-size: 18px;
-      color: #6C4E5B;
-    }
-
-    .card {
-      background: #F0E7DC;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 16px 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    .card h3 {
-      margin: 0 0 8px;
-    }
-
-    .card p {
-      margin: 0 0 8px;
-    }
-
-    .card a {
-      color: #3A7D72;
-      text-decoration: none;
-    }
-
-    .card button {
-      background: #3A7D72;
-      border: none;
-      color: #fff;
-      padding: 10px 18px;
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 32px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f5f5f5; }
+    .clickable { cursor: pointer; color: #999; }
+    .form-container { margin-top: 20px; }
+    .form-container input, .form-container select, .form-container button {
+      margin: 8px 0;
+      padding: 10px;
+      width: 100%;
+      font-size: 16px;
       border-radius: 6px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: bold;
-      transition: background 0.3s;
-    }
-
-    .card button:hover:not(:disabled) {
-      background: #2f6a62;
-    }
-
-    .card button[disabled] {
-      background: #3A7D72;
-      cursor: default;
-      opacity: 0.6;
-    }
-
-    #logout {
-      margin-top: 10px;
-      font-size: 14px;
-      background: none;
-      border: none;
-      color: #6C4E5B;
-      text-decoration: underline;
-      cursor: pointer;
+      border: 1px solid #ccc;
     }
   </style>
+  <script>
+    function reveal(span, text) {
+      span.innerText = text;
+      span.style.color = '#000';
+    }
+
+    function showForm(type, id = '') {
+      document.getElementById(type + '-form').style.display = 'block';
+      if (id) {
+        // Pre-fill form with existing gift details
+        fetchGiftDetails(id);
+      }
+    }
+
+    function fetchGiftDetails(id) {
+      // Assuming you have a route to fetch gift details by id
+      fetch(`/admin/gift/${id}`)
+        .then(response => response.json())
+        .then(gift => {
+          document.getElementById('gift-title').value = gift.title;
+          document.getElementById('gift-description').value = gift.description;
+          document.getElementById('gift-link').value = gift.link;
+          document.getElementById('gift-category').value = gift.category;
+        });
+    }
+  </script>
 </head>
 <body>
+  <h1>Привет! Это мой вишлист 🎁</h1>
+  <p>Не обязательно выбирать что-то из списка, мне приятно любое внимание💕</p>
+  <p>Но вот список вещиц, о которых я мечтаю или просто очень хочу😄</p>
+  <p>Чтобы забронировать — войди через Telegram</p>
+ 
+  <!-- Telegram Login Widget -->
+  <script async src="https://telegram.org/js/telegram-widget.js?22"
+    data-telegram-login="MariiaWishlistBot" 
+    data-size="large"
+    data-userpic="false"
+    data-onauth="onTelegramAuth(user)">
+  </script>
 
-<h1>Привет! Это мой вишлист 🎁</h1>
-<p>Не обязательно выбирать что-то из списка, мне приятно любое внимание💕</p>
-<p>Но вот список вещиц, о которых я мечтаю или просто очень хочу😄</p>
-<p>Чтобы забронировать — войди через Telegram</p>
-  
-<!-- Telegram Login Widget -->
-<script async src="https://telegram.org/js/telegram-widget.js?22"
-  data-telegram-login="MariiaWishlistBot" 
-  data-size="large"
-  data-userpic="false"
-  data-onauth="onTelegramAuth(user)">
-</script>
+  <div id="list">
+    <p>Загрузка...</p>
+  </div>
 
-<!-- Кнопка "выйти" -->
-<div id="logout-container" style="display:none;">
-  <button id="logout" onclick="logout()">Выйти из Telegram</button>
-</div>
+  <h2>Добавить новый подарок</h2>
+  <div class="form-container" id="add-form">
+    <input type="text" id="gift-title" placeholder="Название подарка" required>
+    <input type="text" id="gift-description" placeholder="Описание подарка" required>
+    <input type="url" id="gift-link" placeholder="Ссылка на подарок" required>
+    <select id="gift-category">
+      <option value="Самые желанные">Самые желанные</option>
+      <option value="Здоровье">Здоровье</option>
+      <option value="Полезности">Полезности</option>
+      <option value="Приятности">Приятности</option>
+      <option value="Универсальное">Универсальное</option>
+    </select>
+    <button onclick="addGift()">Добавить подарок</button>
+  </div>
 
-<div id="list">
-  <p>Загрузка...</p>
-</div>
+  <h2>Редактировать подарок</h2>
+  <div class="form-container" id="edit-form" style="display: none;">
+    <input type="text" id="edit-gift-title" placeholder="Название подарка" required>
+    <input type="text" id="edit-gift-description" placeholder="Описание подарка" required>
+    <input type="url" id="edit-gift-link" placeholder="Ссылка на подарок" required>
+    <select id="edit-gift-category">
+      <option value="Самые желанные">Самые желанные</option>
+      <option value="Здоровье">Здоровье</option>
+      <option value="Полезности">Полезности</option>
+      <option value="Приятности">Приятности</option>
+      <option value="Универсальное">Универсальное</option>
+    </select>
+    <button onclick="updateGift()">Обновить подарок</button>
+  </div>
 
-<script>
-  let user = null;
+  <h2>Список подарков</h2>
+  <table id="gift-table">
+    <tr>
+      <th>Подарок</th>
+      <th>Категория</th>
+      <th>Описание</th>
+      <th>Ссылка</th>
+      <th>Забронировать</th>
+      <th>Редактировать</th>
+      <th>Удалить</th>
+      <th>Подарен</th>
+    </tr>
+  </table>
 
-  function onTelegramAuth(u) {
-    user = u;
-    localStorage.setItem('tg_user', JSON.stringify(user));
-    document.getElementById('logout-container').style.display = 'block';
-    loadGifts();
-  }
+  <script>
+    let user = null;
 
-  function logout() {
-    localStorage.removeItem('tg_user');
-    location.reload();
-  }
-
-  async function loadGifts() {
-    const saved = localStorage.getItem('tg_user');
-    if (!user && saved) {
-      user = JSON.parse(saved);
-      document.getElementById('logout-container').style.display = 'block';
+    function onTelegramAuth(u) {
+      user = u;
+      loadGifts();
     }
 
-    const res = await fetch("https://my-wishlist.onrender.com/wishlist");
-    const gifts = await res.json();
-
-    const container = document.getElementById('list');
-    container.innerHTML = '';
-
-    const grouped = {};
-    gifts.forEach(g => {
-      if (!grouped[g.category]) grouped[g.category] = [];
-      grouped[g.category].push(g);
-    });
-
-    for (const cat of ["Самые желанные", "Здоровье", "Полезности", "Приятности", "Универсальное"]) {
-      if (!grouped[cat]) continue;
-      const heading = document.createElement('div');
-      heading.className = 'category';
-      heading.textContent = cat;
-      container.appendChild(heading);
-
-      grouped[cat].forEach(gift => {
-        const card = document.createElement('div');
-        card.className = 'card';
-
-        const title = `<h3>${gift.title}</h3>`;
-        const desc = gift.desc ? `<p>${gift.desc}</p>` : '';
-        const link = gift.link ? `<p><a href="${gift.link}" target="_blank">Ссылка на подарок</a></p>` : '';
-
-        const button = document.createElement('button');
-        button.innerText = gift.reserved ? 'Забронировано' : 'Забронировать';
-        button.disabled = gift.reserved;
-
-        button.onclick = async () => {
-          if (!user) {
-            alert("Пожалуйста, авторизуйтесь через Telegram, чтобы забронировать подарок.");
-            return;
-          }
-
-          const confirmed = confirm("Вы точно хотите забронировать этот подарок?");
-          if (!confirmed) return;
-
-          const response = await fetch("https://my-wishlist.onrender.com/reserve", {
-            method: "POST",
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ gift_id: gift.id, user })
-          });
-
-          if (response.ok) {
-            loadGifts();
-          } else {
-            const error = await response.json();
-            alert(error.error || 'Ошибка бронирования');
-          }
-        };
-
-        card.innerHTML = title + desc + link;
-        card.appendChild(button);
-        container.appendChild(card);
+    async function loadGifts() {
+      const res = await fetch("https://my-wishlist.onrender.com/wishlist");
+      const gifts = await res.json();
+      const container = document.getElementById('gift-table');
+      container.innerHTML = '';
+      
+      gifts.forEach(gift => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${gift.title}</td>
+          <td>${gift.category}</td>
+          <td>${gift.desc}</td>
+          <td><a href="${gift.link}" target="_blank">Ссылка</a></td>
+          <td><button ${gift.reserved ? 'disabled' : ''} onclick="reserveGift(${gift.id})">${gift.reserved ? 'Забронировано' : 'Забронировать'}</button></td>
+          <td><button onclick="showForm('edit', ${gift.id})">Редактировать</button></td>
+          <td><button onclick="deleteGift(${gift.id})">Удалить</button></td>
+          <td><button onclick="markGiftAsGiven(${gift.id})">Подарен</button></td>
+        `;
+        container.appendChild(row);
       });
     }
-  }
 
-  loadGifts();
+    async function addGift() {
+      const title = document.getElementById('gift-title').value;
+      const description = document.getElementById('gift-description').value;
+      const link = document.getElementById('gift-link').value;
+      const category = document.getElementById('gift-category').value;
+      
+      const response = await fetch("https://my-wishlist.onrender.com/admin/gift/add", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, link, category })
+      });
 
-  if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe?.user) {
-    onTelegramAuth(Telegram.WebApp.initDataUnsafe.user);
-  }
-</script>
+      if (response.ok) {
+        loadGifts();
+      } else {
+        alert('Ошибка при добавлении подарка');
+      }
+    }
+
+    async function updateGift() {
+      const title = document.getElementById('edit-gift-title').value;
+      const description = document.getElementById('edit-gift-description').value;
+      const link = document.getElementById('edit-gift-link').value;
+      const category = document.getElementById('edit-gift-category').value;
+      
+      const response = await fetch("https://my-wishlist.onrender.com/admin/gift/update", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, link, category })
+      });
+
+      if (response.ok) {
+        loadGifts();
+      } else {
+        alert('Ошибка при обновлении подарка');
+      }
+    }
+
+    async function deleteGift(id) {
+      const response = await fetch(`https://my-wishlist.onrender.com/admin/gift/delete/${id}`, {
+        method: "DELETE"
+      });
+
+      if (response.ok) {
+        loadGifts();
+      } else {
+        alert('Ошибка при удалении подарка');
+      }
+    }
+
+    async function markGiftAsGiven(id) {
+      const response = await fetch(`https://my-wishlist.onrender.com/admin/gift/given/${id}`, {
+        method: "PATCH"
+      });
+
+      if (response.ok) {
+        loadGifts();
+      } else {
+        alert('Ошибка при изменении статуса подарка');
+      }
+    }
+
+    loadGifts();
+  </script>
 
 </body>
 </html>
