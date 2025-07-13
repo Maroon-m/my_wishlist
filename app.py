@@ -52,7 +52,8 @@ def get_db():
         cur.execute("SELECT COUNT(*) FROM gifts;")
         if cur.fetchone()['count'] == 0:
             sample = [
-                ("Модель Breyer Catch Me", "Можно выловить на Авито", "https://www.breyerhorses.com/products/catch-me", "Самые желанные"),
+                ("Модель Breyer Catch Me", "Можно выловить на <a href='https://www.avito.ru/sankt-peterburg/kollektsionirovanie/loshad_breyer_traditional_catch_me_19_7299481316' target='_blank'>Авито</a>"
+, "https://www.breyerhorses.com/products/catch-me", "Самые желанные"),
                 ("Instax фотоаппарат мгновенной печати", "Или беленький полароид, но он, кажется, ещё дороже :(", "https://www.ozon.ru/product/fotoapparat-mgnovennoy-pechati-fujifilm-mini-12-zelenyy-1047331780", "Самые желанные"),
                 ("Сессия с психологом", "", "", "Здоровье"),
                 ("МРФ-ролик", "", "", "Здоровье"),
