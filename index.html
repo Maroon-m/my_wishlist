@@ -4,90 +4,98 @@
   <meta charset="UTF-8">
   <title>Мой вишлист 🎁</title>
   <style>
-  body {
-    background: #FAF8F5;
-    color: #333;
-    font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: auto;
-    padding: 20px;
-  }
+    body {
+      background: #FAF8F5;
+      color: #333;
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
 
-  h1 {
-    color: #6C4E5B;
-  }
+    h1 {
+      color: #6C4E5B;
+    }
 
-  h2 {
-    margin-top: 40px;
-    color: #6C4E5B;
-    border-bottom: 2px solid #E0D6CD;
-    padding-bottom: 4px;
-  }
+    .category {
+      margin-top: 32px;
+      margin-bottom: 8px;
+      font-weight: bold;
+      font-size: 18px;
+      color: #6C4E5B;
+    }
 
-  .card {
-    background: #F0E7DC;
-    border-radius: 12px;
-    padding: 16px;
-    margin: 16px 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
+    .card {
+      background: #F0E7DC;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
 
-  .card h3 {
-    margin: 0 0 8px;
-  }
+    .card h3 {
+      margin: 0 0 8px;
+    }
 
-  .card p {
-    margin: 0 0 8px;
-  }
+    .card p {
+      margin: 0 0 8px;
+    }
 
-  .card a {
-    color: #3A7D72;
-    text-decoration: none;
-  }
+    .card a {
+      color: #3A7D72;
+      text-decoration: none;
+    }
 
-  .card button {
-    background: #3A7D72;
-    border: none;
-    color: #fff;
-    padding: 10px 18px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: bold;
-    transition: background 0.3s;
-  }
+    .card button {
+      background: #3A7D72;
+      border: none;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
 
-  .card button:hover:not(:disabled) {
-    background: #2f6a62;
-  }
+    .card button:hover:not(:disabled) {
+      background: #2f6a62;
+    }
 
-  .card button[disabled].reserved {
-    background: #ccc;
-    cursor: default;
-  }
+    .card button[disabled] {
+      background: #3A7D72;
+      cursor: default;
+      opacity: 0.6;
+    }
 
-  .card button[disabled]:not(.reserved) {
-    background: #3A7D72;
-    opacity: 0.6;
-    cursor: default;
-    color: #fff;
-  }
+    #logout {
+      margin-top: 10px;
+      font-size: 14px;
+      background: none;
+      border: none;
+      color: #6C4E5B;
+      text-decoration: underline;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
 <h1>Привет! Это мой вишлист 🎁</h1>
-<p>Не обязательно выбирать что-то из списка, мне приятно любое внимание💕</p>
-<p>👇Но вот список вещиц, о которых я мечтаю или просто очень хочу😄</p>
-<p>Чтобы забронировать — войди через Telegram</p>
+<p>Ниже список приятных штук, которые можно подарить. Чтобы забронировать — войди через Telegram 👇</p>
 
 <!-- Telegram Login Widget -->
 <script async src="https://telegram.org/js/telegram-widget.js?22"
-  data-telegram-login="MariiaWishlistBot"
+  data-telegram-login="MariiaWishlistBot" 
   data-size="large"
   data-userpic="false"
   data-onauth="onTelegramAuth(user)">
 </script>
+
+<!-- Кнопка "выйти" -->
+<div id="logout-container" style="display:none;">
+  <button id="logout" onclick="logout()">Выйти из Telegram</button>
+</div>
 
 <div id="list">
   <p>Загрузка...</p>
@@ -98,28 +106,43 @@
 
   function onTelegramAuth(u) {
     user = u;
+    localStorage.setItem('tg_user', JSON.stringify(user));
+    document.getElementById('logout-container').style.display = 'block';
     loadGifts();
   }
 
+  function logout() {
+    localStorage.removeItem('tg_user');
+    location.reload();
+  }
+
   async function loadGifts() {
+    const saved = localStorage.getItem('tg_user');
+    if (!user && saved) {
+      user = JSON.parse(saved);
+      document.getElementById('logout-container').style.display = 'block';
+    }
+
     const res = await fetch("https://my-wishlist.onrender.com/wishlist");
     const gifts = await res.json();
 
     const container = document.getElementById('list');
     container.innerHTML = '';
 
-    const categories = {};
-    for (const gift of gifts) {
-      if (!categories[gift.category]) categories[gift.category] = [];
-      categories[gift.category].push(gift);
-    }
+    const grouped = {};
+    gifts.forEach(g => {
+      if (!grouped[g.category]) grouped[g.category] = [];
+      grouped[g.category].push(g);
+    });
 
-    for (const [category, items] of Object.entries(categories)) {
-      const header = document.createElement('h2');
-      header.innerText = category;
-      container.appendChild(header);
+    for (const cat of ["Самые желанные", "Здоровье", "Полезности", "Приятности", "Универсальное"]) {
+      if (!grouped[cat]) continue;
+      const heading = document.createElement('div');
+      heading.className = 'category';
+      heading.textContent = cat;
+      container.appendChild(heading);
 
-      items.forEach(gift => {
+      grouped[cat].forEach(gift => {
         const card = document.createElement('div');
         card.className = 'card';
 
@@ -129,8 +152,7 @@
 
         const button = document.createElement('button');
         button.innerText = gift.reserved ? 'Забронировано' : 'Забронировать';
-        button.disabled = gift.reserved || !user;
-        if (gift.reserved) button.classList.add('reserved');
+        button.disabled = gift.reserved;
 
         button.onclick = async () => {
           if (!user) {
@@ -162,13 +184,10 @@
     }
   }
 
-  // показать список сразу
   loadGifts();
 
-  // Telegram WebApp fallback
   if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe?.user) {
-    user = Telegram.WebApp.initDataUnsafe.user;
-    loadGifts();
+    onTelegramAuth(Telegram.WebApp.initDataUnsafe.user);
   }
 </script>
 
