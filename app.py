@@ -156,7 +156,7 @@ def admin():
         <tr>
           <td>{r["gift_id"]}</td>
           <td>{r["tg_id"]}</td>
-          <td><span class="clickable" onclick="reveal(this, '{uname}')">👁 Показать</span></td>
+          <td><span class="clickable" onclick="reveal(this, '{uname}')">👁 Рассекретить</span></td>
           <td>{dt}</td>
           <td><a href="{link}">Сброс</a></td>
         </tr>"""
@@ -174,7 +174,7 @@ def admin():
         html_out += f"""
         <tr>
           <td>{a["tg_id"]}</td>
-          <td><span class="clickable" onclick="reveal(this, '{uname}')">👁 показать</span></td>
+          <td><span class="clickable" onclick="reveal(this, '{uname}')">👁 Рассекретить</span></td>
           <td>{dt}</td>
         </tr>
         """
