@@ -95,7 +95,7 @@ def reset():
     if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
         return "No access", 403
 
-    gift_id = user.get('gift_id')
+    gift_id = int(user.get('gift_id', 0))
     db.execute('DELETE FROM reserves WHERE gift_id=?', (gift_id,))
     db.commit()
     return "OK"
