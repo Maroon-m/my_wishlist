@@ -40,6 +40,14 @@ def get_db():
             timestamp BIGINT
         );
         """)
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS overlimit_attempts (
+            tg_id BIGINT,
+            username TEXT,
+            timestamp BIGINT
+        );
+        """)
+
         cur.execute("SELECT COUNT(*) FROM gifts;")
         if cur.fetchone()['count'] == 0:
             sample = [
@@ -87,6 +95,10 @@ def reserve():
     with db.cursor() as cur:
         cur.execute('SELECT count(*) FROM reserves WHERE tg_id=%s;', (tg_id,))
         if cur.fetchone()['count'] >= 3:
+            cur.execute(
+            "INSERT INTO overlimit_attempts VALUES (%s, %s, %s);",
+            (tg_id, uname, int(time.time()))
+            )
             return jsonify({"error": "limit reached"}), 400
 
         cur.execute('SELECT 1 FROM reserves WHERE gift_id=%s;', (gift_id,))
@@ -113,6 +125,15 @@ def admin():
         html_out += f'<tr><td>{r["gift_id"]}</td><td>{r["tg_id"]}</td><td>@{html.escape(r["username"] or "")}</td><td>{time.ctime(r["timestamp"])}</td>' \
                     f'<td><a href="{link}">Сброс</a></td></tr>'
     html_out += '</table>'
+    with db.cursor() as cur:
+        cur.execute("SELECT tg_id, username, timestamp FROM overlimit_attempts ORDER BY timestamp DESC LIMIT 10;")
+        attempts = cur.fetchall()
+
+    html_out += '<h2>Попытки переброни</h2>\n<table><tr><th>ID</th><th>Логин</th><th>Время</th></tr>'
+    for a in attempts:
+        html_out += f'<tr><td>{a["tg_id"]}</td><td>@{html.escape(a["username"] or "")}</td><td>{time.ctime(a["timestamp"])}</td></tr>'
+    html_out += '</table>'
+
     return html_out
 
 @app.route('/admin/reset')
