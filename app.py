@@ -62,12 +62,19 @@ def reserve():
     data = request.json
     user = data.get('user')
     gift_id = data.get('gift_id')
-    if not verify_telegram(user): return jsonify({"error": "auth failed"}), 403
-    tg_id, uname = user['id'], user.get('username', '')
+
+    # отключим верификацию по hash
+    tg_id, uname = user.get('id'), user.get('username', '')
+    if not tg_id:
+        return jsonify({"error": "user id missing"}), 400
+
     cnt = db.execute('SELECT count(*) FROM reserves WHERE tg_id=?', (tg_id,)).fetchone()[0]
-    if cnt >= 3: return jsonify({"error": "limit reached"}), 400
+    if cnt >= 3:
+        return jsonify({"error": "limit reached"}), 400
+
     if db.execute('SELECT 1 FROM reserves WHERE gift_id=?', (gift_id,)).fetchone():
         return jsonify({"error": "already reserved"}), 400
+
     db.execute('INSERT INTO reserves VALUES (?, ?, ?, ?)', (gift_id, tg_id, uname, int(time.time())))
     db.commit()
     return jsonify({"ok": True})
