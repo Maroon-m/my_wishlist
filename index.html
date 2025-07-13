@@ -150,14 +150,14 @@
     const gifts = await res.json();
 
     const container = document.getElementById('list');
-    container.innerHTML = '';
+    container.innerHTML = '';  // Убираем текст загрузки
+
+    if (gifts.length === 0) {
+      container.innerHTML = '<p>Подарков нет или произошла ошибка при загрузке. Попробуйте позже.</p>';
+      return;
+    }
 
     gifts.forEach(gift => {
-      // Админ не видит забронированные
-      if (gift.reserved && (!user || user.id === 877872483)) {
-        return;
-      }
-
       const card = document.createElement('div');
       card.className = 'card';
 
