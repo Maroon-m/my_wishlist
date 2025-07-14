@@ -250,5 +250,80 @@ def edit_gifts():
     html_out += "</table>"
     return html_out
 
+@app.route('/admin/gifts')
+def admin_gifts():
+    user = request.args
+    uid = user.get("id")
+    if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
+        return "No access", 403
+
+    with db.cursor() as cur:
+        cur.execute('SELECT * FROM gifts ORDER BY category, id;')
+        gifts = cur.fetchall()
+
+    html = """
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+      <meta charset="UTF-8">
+      <title>Редактировать подарки</title>
+      <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 32px; }
+        th, td { border: 1px solid #ccc; padding: 6px 10px; }
+        th { background: #eee; }
+        input, textarea { width: 100%; margin-bottom: 6px; }
+        .given { color: gray; text-decoration: line-through; }
+      </style>
+    </head>
+    <body>
+      <h1>Редактор подарков</h1>
+
+      <h2>Добавить новый</h2>
+      <form method="post" action="/admin/gift/add?id={{id}}&username={{username}}&auth_date={{auth_date}}&hash={{hash}}">
+        <p><input name="title" placeholder="Название" required></p>
+        <p><textarea name="description" placeholder="Описание"></textarea></p>
+        <p><input name="link" placeholder="Ссылка (необязательно)"></p>
+        <p><input name="category" placeholder="Категория" required></p>
+        <p><button type="submit">Добавить</button></p>
+      </form>
+
+      <h2>Существующие подарки</h2>
+      <table>
+        <tr><th>ID</th><th>Название</th><th>Категория</th><th>Статус</th><th>Действия</th></tr>
+        {% for g in gifts %}
+          <tr class="{{ 'given' if g['given'] else '' }}">
+            <td>{{ g['id'] }}</td>
+            <td>{{ g['title'] }}</td>
+            <td>{{ g['category'] }}</td>
+            <td>{{ 'Подарено' if g['given'] else 'Ожидает' }}</td>
+            <td>
+              <form method="post" action="/admin/gift/delete?id={{id}}&username={{username}}&auth_date={{auth_date}}&hash={{hash}}" style="display:inline;">
+                <input type="hidden" name="id" value="{{ g['id'] }}">
+                <button type="submit">Удалить</button>
+              </form>
+              {% if not g['given'] %}
+              <form method="post" action="/admin/gift/given?id={{id}}&username={{username}}&auth_date={{auth_date}}&hash={{hash}}" style="display:inline;">
+                <input type="hidden" name="id" value="{{ g['id'] }}">
+                <button type="submit">Подарено</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    </body>
+    </html>
+    """
+
+    return render_template_string(html,
+        gifts=gifts,
+        id=uid,
+        username=user.get("username"),
+        auth_date=user.get("auth_date"),
+        hash=user.get("hash")
+    )
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
