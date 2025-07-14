@@ -261,18 +261,18 @@ def admin_gifts():
             <td>{{ g['id'] }}</td>
             <td>{{ g['title'] }}</td>
             <td>{{ g['category'] }}</td>
-            <td>{{ 'Подарено' if g['given'] else 'Ожидает' }}</td>
+            <td>{{ 'Подарено' if g['given'] else 'Активен' }}</td>
             <td>
               <form method="post" action="/admin/gift/delete?id={{id}}&username={{username}}&auth_date={{auth_date}}&hash={{hash}}" style="display:inline;">
                 <input type="hidden" name="id" value="{{ g['id'] }}">
                 <button type="submit">Удалить</button>
               </form>
-              {% if not g['given'] %}
-              <form method="post" action="/admin/gift/given?id={{id}}&username={{username}}&auth_date={{auth_date}}&hash={{hash}}" style="display:inline;">
-                <input type="hidden" name="id" value="{{ g['id'] }}">
-                <button type="submit">Подарено</button>
-              </form>
-              {% endif %}
+                <form method="post" action="/admin/gift/given?id={{id}}&username={{username}}&auth_date={{auth_date}}&hash={{hash}}" style="display:inline;">
+                  <input type="hidden" name="id" value="{{ g['id'] }}">
+                  <button type="submit">
+                    {{ 'Убрать статус подарено' if g['given'] else 'Подарено' }}
+                  </button>
+                </form>
             </td>
           </tr>
         {% endfor %}
@@ -302,9 +302,12 @@ def add_gift():
     cat = request.form.get("category")
 
     with db.cursor() as cur:
-        cur.execute("INSERT INTO gifts (title, description, link, category) VALUES (%s, %s, %s, %s);", (title, desc, link, cat))
-    return redirect(f"/admin/gifts?id={uid}&username={user.get('username')}&auth_date={user.get('auth_date')}&hash={user.get('hash')}")
+        cur.execute("""
+            INSERT INTO gifts (title, description, link, category, given)
+            VALUES (%s, %s, %s, %s, %s);
+        """, (title, desc, link, cat, False))
 
+    return redirect(f"/admin/gifts?id={uid}&username={user.get('username')}&auth_date={user.get('auth_date')}&hash={user.get('hash')}")
 @app.route('/admin/gift/delete', methods=['POST'])
 def delete_gift():
     user = request.args
@@ -326,7 +329,7 @@ def mark_given():
 
     gift_id = request.form.get("id")
     with db.cursor() as cur:
-        cur.execute("UPDATE gifts SET given = TRUE WHERE id=%s;", (gift_id,))
+        cur.execute("UPDATE gifts SET given = NOT given WHERE id=%s;", (gift_id,))
     return redirect(f"/admin/gifts?id={uid}&username={user.get('username')}&auth_date={user.get('auth_date')}&hash={user.get('hash')}")
 
 
