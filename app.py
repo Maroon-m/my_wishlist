@@ -291,6 +291,7 @@ def admin_gifts():
 
 @app.route('/admin/gift/add', methods=['POST'])
 def add_gift():
+    print(">>> add_gift called")
     user = request.args
     uid = user.get("id")
     if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
@@ -310,6 +311,7 @@ def add_gift():
         """, (title, desc, link, cat, False))
 
     return redirect(f"/admin/gifts?id={uid}&username={user.get('username')}&auth_date={user.get('auth_date')}&hash={user.get('hash')}")
+
 @app.route('/admin/gift/delete', methods=['POST'])
 def delete_gift():
     user = request.args
