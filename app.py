@@ -74,7 +74,11 @@ def get_db():
             ]
             for i, s in enumerate(sample, 1):
                 cur.execute("INSERT INTO gifts (id, title, description, link, category) VALUES (%s, %s, %s, %s, %s);", (i, *s))
-                cur.execute("SELECT setval('gifts_id_seq', (SELECT MAX(id) FROM gifts));")
+        cur.execute("SELECT MAX(id) FROM gifts;")
+        max_id = cur.fetchone()["max"]
+        if max_id is not None:
+            cur.execute("SELECT setval(pg_get_serial_sequence('gifts', 'id'), %s, true);", (max_id,))
+
     return conn
 
 db = get_db()
