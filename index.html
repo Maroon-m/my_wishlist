@@ -136,8 +136,8 @@
       if (!grouped[g.category]) grouped[g.category] = [];
       grouped[g.category].push(g);
     });
-
-    for (const cat of ["Самые желанные", "Здоровье", "Полезности", "Приятности", "Универсальное"]) {
+    const categories = Object.keys(grouped).sort();
+    for (const cat of categories) {
       if (!grouped[cat]) continue;
       const heading = document.createElement('div');
       heading.className = 'category';
