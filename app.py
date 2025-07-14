@@ -85,12 +85,20 @@ def index():
 @app.route('/wishlist')
 def wishlist():
     with db.cursor() as cur:
-        cur.execute('SELECT id, title, description, link, category FROM gifts;')
+        cur.execute('SELECT id, title, description, link, category, given FROM gifts;')
         gifts = []
         for row in cur.fetchall():
             cur.execute('SELECT count(*) FROM reserves WHERE gift_id=%s;', (row['id'],))
             reserved = cur.fetchone()['count'] > 0
-            gifts.append(dict(id=row['id'], title=row['title'], desc=row['description'], link=row['link'], category=row['category'], reserved=reserved))
+            gifts.append(dict(
+                id=row['id'],
+                title=row['title'],
+                desc=row['description'],
+                link=row['link'],
+                category=row['category'],
+                reserved=reserved,
+                given=row['given']
+            ))
         return jsonify(gifts)
 
 @app.route('/reserve', methods=['POST'])
@@ -279,6 +287,46 @@ def admin_gifts():
         auth_date=user.get("auth_date"),
         hash=user.get("hash")
     )
+
+@app.route('/admin/gift/add', methods=['POST'])
+def add_gift():
+    user = request.args
+    uid = user.get("id")
+    if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
+        return "No access", 403
+
+    title = request.form.get("title")
+    desc = request.form.get("description", "")
+    link = request.form.get("link", "")
+    cat = request.form.get("category")
+
+    with db.cursor() as cur:
+        cur.execute("INSERT INTO gifts (title, description, link, category) VALUES (%s, %s, %s, %s);", (title, desc, link, cat))
+    return redirect(f"/admin/gifts?id={uid}&username={user.get('username')}&auth_date={user.get('auth_date')}&hash={user.get('hash')}")
+
+@app.route('/admin/gift/delete', methods=['POST'])
+def delete_gift():
+    user = request.args
+    uid = user.get("id")
+    if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
+        return "No access", 403
+
+    gift_id = request.form.get("id")
+    with db.cursor() as cur:
+        cur.execute("DELETE FROM gifts WHERE id=%s;", (gift_id,))
+    return redirect(f"/admin/gifts?id={uid}&username={user.get('username')}&auth_date={user.get('auth_date')}&hash={user.get('hash')}")
+
+@app.route('/admin/gift/given', methods=['POST'])
+def mark_given():
+    user = request.args
+    uid = user.get("id")
+    if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
+        return "No access", 403
+
+    gift_id = request.form.get("id")
+    with db.cursor() as cur:
+        cur.execute("UPDATE gifts SET given = TRUE WHERE id=%s;", (gift_id,))
+    return redirect(f"/admin/gifts?id={uid}&username={user.get('username')}&auth_date={user.get('auth_date')}&hash={user.get('hash')}")
 
 
 if __name__ == '__main__':
