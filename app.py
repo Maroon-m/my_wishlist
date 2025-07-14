@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect, render_template_string
 import time, hmac, hashlib, os, html
 from datetime import datetime, timedelta, timezone
 from flask_cors import CORS
@@ -78,6 +78,10 @@ def get_db():
 
 db = get_db()
 
+@app.route('/')
+def index():
+    return 'Backend is running!'
+    
 @app.route('/wishlist')
 def wishlist():
     with db.cursor() as cur:
