@@ -72,6 +72,14 @@
       opacity: 0.6;
     }
 
+    .card button.cancel {
+      background: #D9A441;
+    }
+    .card button.cancel:hover:not(:disabled) {
+      background: #c18f2c;
+    }
+
+
     #logout {
       margin-top: 10px;
       font-size: 14px;
@@ -166,13 +174,14 @@
         const link = gift.link ? `<p><a href="${gift.link}" target="_blank">Ссылка на подарок</a></p>` : '';
 
         const button = document.createElement('button');
-
+        
         if (gift.given) {
           button.innerText = 'Уже подарили ☺️';
           button.disabled = true;
         } else if (gift.reserved) {
           if (user && user.id === gift.user_id) {
             button.innerText = 'Отменить бронь';
+            button.classList.add('cancel');
             button.onclick = async () => {
               const confirmed = confirm("Отменить бронь на этот подарок?");
               if (!confirmed) return;
@@ -185,7 +194,7 @@
                 loadGifts();
               } else {
                 const error = await response.json();
-                alert(error.error || 'Ошибка');
+                alert(error.error || 'Ошибка отмены брони');
               }
             };
           } else {
@@ -194,15 +203,22 @@
           }
         } else {
           button.innerText = 'Забронировать';
-          button.disabled = !user;
+          // Кнопка активна всегда
           button.onclick = async () => {
+            if (!user) {
+              alert("Пожалуйста, авторизуйтесь через Telegram, чтобы забронировать подарок.");
+              return;
+            }
+        
             const confirmed = confirm("Вы точно хотите забронировать этот подарок?");
             if (!confirmed) return;
+        
             const response = await fetch("https://my-wishlist.onrender.com/reserve", {
               method: "POST",
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ gift_id: gift.id, user })
             });
+        
             if (response.ok) {
               loadGifts();
             } else {
@@ -211,6 +227,7 @@
             }
           };
         }
+
 
         card.innerHTML = title + desc + link;
         card.appendChild(button);
