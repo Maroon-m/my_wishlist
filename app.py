@@ -270,7 +270,7 @@ def admin_gifts():
                 <form method="post" action="/admin/gift/given?id={{id}}&username={{username}}&auth_date={{auth_date}}&hash={{hash}}" style="display:inline;">
                   <input type="hidden" name="id" value="{{ g['id'] }}">
                   <button type="submit">
-                    {{ 'Убрать статус подарено' if g['given'] else 'Подарено' }}
+                    {{ 'Включить' if g['given'] else 'Подарено' }}
                   </button>
                 </form>
             </td>
@@ -301,6 +301,8 @@ def add_gift():
     link = request.form.get("link", "")
     cat = request.form.get("category")
 
+    print(f"[ADD_GIFT] uid={uid}, title={title}, cat={cat}")
+    
     with db.cursor() as cur:
         cur.execute("""
             INSERT INTO gifts (title, description, link, category, given)
