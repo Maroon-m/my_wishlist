@@ -74,6 +74,7 @@ def get_db():
             ]
             for i, s in enumerate(sample, 1):
                 cur.execute("INSERT INTO gifts (id, title, description, link, category) VALUES (%s, %s, %s, %s, %s);", (i, *s))
+                cur.execute("SELECT setval('gifts_id_seq', (SELECT MAX(id) FROM gifts));")
     return conn
 
 db = get_db()
