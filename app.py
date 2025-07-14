@@ -6,7 +6,7 @@ import psycopg
 from psycopg.rows import dict_row
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_IDS = [877872483]
