@@ -149,6 +149,7 @@ def admin():
     </head>
     <body>
     <h1>Админка</h1>
+    <p><a href="/admin/gifts?id={uid}&username={user.get("username")}&auth_date={user.get("auth_date")}&hash={user.get("hash")}">Управление подарками</a></p>
     <table>
       <tr><th>Подарок</th><th>ID</th><th>Логин</th><th>Время (МСК)</th><th>Сброс</th></tr>
     """
