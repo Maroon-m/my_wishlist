@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect, render_template_string
 import time, hmac, hashlib, os, html
 from datetime import datetime, timedelta, timezone
 from flask_cors import CORS
@@ -206,56 +206,56 @@ def reset():
         cur.execute('DELETE FROM reserves WHERE gift_id=%s;', (gift_id,))
     return "OK"
 
-@app.route('/admin/gifts', methods=['GET', 'POST'])
-def edit_gifts():
-    user = request.args
-    uid = user.get("id")
-    if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
-        return "No access", 403
+# @app.route('/admin/gifts', methods=['GET', 'POST'])
+# def edit_gifts():
+#     user = request.args
+#     uid = user.get("id")
+#     if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
+#         return "No access", 403
 
-    with db.cursor() as cur:
-        # Обработка POST (изменения)
-        if request.method == 'POST':
-            action = request.form.get('action')
-            gift_id = request.form.get('gift_id')
-            if action == 'delete':
-                cur.execute('DELETE FROM gifts WHERE id=%s;', (gift_id,))
-            elif action == 'toggle_given':
-                cur.execute('UPDATE gifts SET given = NOT given WHERE id=%s;', (gift_id,))
-            return redirect(request.url)
+#     with db.cursor() as cur:
+#         # Обработка POST (изменения)
+#         if request.method == 'POST':
+#             action = request.form.get('action')
+#             gift_id = request.form.get('gift_id')
+#             if action == 'delete':
+#                 cur.execute('DELETE FROM gifts WHERE id=%s;', (gift_id,))
+#             elif action == 'toggle_given':
+#                 cur.execute('UPDATE gifts SET given = NOT given WHERE id=%s;', (gift_id,))
+#             return redirect(request.url)
 
-        # GET
-        cur.execute("SELECT * FROM gifts ORDER BY category, id;")
-        gifts = cur.fetchall()
+#         # GET
+#         cur.execute("SELECT * FROM gifts ORDER BY category, id;")
+#         gifts = cur.fetchall()
 
-    # Простая HTML-форма
-    html_out = """
-    <h1>Управление подарками</h1>
-    <table border="1" cellpadding="8">
-    <tr><th>ID</th><th>Название</th><th>Категория</th><th>Действия</th></tr>
-    """
-    for g in gifts:
-        html_out += f"""
-        <tr>
-            <td>{g['id']}</td>
-            <td>{html.escape(g['title'])}</td>
-            <td>{html.escape(g['category'])}</td>
-            <td>
-                <form method="post" style="display:inline">
-                    <input type="hidden" name="gift_id" value="{g['id']}">
-                    <button name="action" value="delete">Удалить</button>
-                </form>
-                <form method="post" style="display:inline">
-                    <input type="hidden" name="gift_id" value="{g['id']}">
-                    <button name="action" value="toggle_given">
-                        {'Убрать статус' if g['given'] else 'Отметить подаренным'}
-                    </button>
-                </form>
-            </td>
-        </tr>
-        """
-    html_out += "</table>"
-    return html_out
+#     # Простая HTML-форма
+#     html_out = """
+#     <h1>Управление подарками</h1>
+#     <table border="1" cellpadding="8">
+#     <tr><th>ID</th><th>Название</th><th>Категория</th><th>Действия</th></tr>
+#     """
+#     for g in gifts:
+#         html_out += f"""
+#         <tr>
+#             <td>{g['id']}</td>
+#             <td>{html.escape(g['title'])}</td>
+#             <td>{html.escape(g['category'])}</td>
+#             <td>
+#                 <form method="post" style="display:inline">
+#                     <input type="hidden" name="gift_id" value="{g['id']}">
+#                     <button name="action" value="delete">Удалить</button>
+#                 </form>
+#                 <form method="post" style="display:inline">
+#                     <input type="hidden" name="gift_id" value="{g['id']}">
+#                     <button name="action" value="toggle_given">
+#                         {'Убрать статус' if g['given'] else 'Отметить подаренным'}
+#                     </button>
+#                 </form>
+#             </td>
+#         </tr>
+#         """
+#     html_out += "</table>"
+#     return html_out
 
 @app.route('/admin/gifts')
 def admin_gifts():
