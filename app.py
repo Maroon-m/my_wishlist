@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, redirect, render_template_string
+from flask import Flask, request, jsonify
 import time, hmac, hashlib, os, html
 from datetime import datetime, timedelta, timezone
 from flask_cors import CORS
@@ -6,7 +6,7 @@ import psycopg
 from psycopg.rows import dict_row
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_IDS = [877872483]
@@ -30,8 +30,7 @@ def get_db():
             title TEXT,
             description TEXT,
             link TEXT,
-            category TEXT,
-            given BOOLEAN DEFAULT FALSE
+            category TEXT
         );
         """)
         cur.execute("""
@@ -53,8 +52,7 @@ def get_db():
         cur.execute("SELECT COUNT(*) FROM gifts;")
         if cur.fetchone()['count'] == 0:
             sample = [
-                ("Модель Breyer Catch Me", "Можно выловить на <a href='https://www.avito.ru/sankt-peterburg/kollektsionirovanie/loshad_breyer_traditional_catch_me_19_7299481316' target='_blank'>Авито</a>"
-, "https://www.breyerhorses.com/products/catch-me", "Самые желанные"),
+                ("Модель Breyer Catch Me", "Можно выловить на Авито", "https://www.breyerhorses.com/products/catch-me", "Самые желанные"),
                 ("Instax фотоаппарат мгновенной печати", "Или беленький полароид, но он, кажется, ещё дороже :(", "https://www.ozon.ru/product/fotoapparat-mgnovennoy-pechati-fujifilm-mini-12-zelenyy-1047331780", "Самые желанные"),
                 ("Сессия с психологом", "", "", "Здоровье"),
                 ("МРФ-ролик", "", "", "Здоровье"),
@@ -65,22 +63,14 @@ def get_db():
                 ("Скраб для тела", "Обожаю лемонграсс или что-то подобное", "", "Приятности"),
                 ("Энзимная пудра для умывания", "", "", "Приятности"),
                 ("Протеиновые вкусняхи", "(без шоколада, пример по ссылке)", "https://www.ozon.ru/product/fitnesshock-proteinovoe-pechene-bez-sahara-biskvit-romovaya-baba-10-sht-1683729709/", "Приятности"),
-                ("Креативные серьги", "", "", "Приятности"),
                 ("Сертификаты Ozon, Золотое Яблоко", "", "", "Универсальное"),
-                ("Подписка тг премиум", "", "", "Универсальное"),
-                ("Игровая приставка Sony PlayStation 5", "", "", "Данила, ты что, крейзи?"),
-                ("Виниловый проигрыватель", "", "", "Данила, ты что, крейзи?"),
-                ("Компактная рожковая кофемашина", "", "", "Данила, ты что, крейзи?"),
+                ("Подписка тг премиум", "", "", "Универсальное")
             ]
             for i, s in enumerate(sample, 1):
                 cur.execute("INSERT INTO gifts (id, title, description, link, category) VALUES (%s, %s, %s, %s, %s);", (i, *s))
     return conn
 
 db = get_db()
-
-@app.route('/')
-def index():
-    return 'Wishlist backend is alive'
 
 @app.route('/wishlist')
 def wishlist():
@@ -132,33 +122,31 @@ def admin():
         cur.execute('SELECT gift_id, tg_id, username, timestamp FROM reserves;')
         rows = cur.fetchall()
 
-    html_out = f"""
+    html_out = """
     <!DOCTYPE html>
     <html lang="ru">
     <head>
       <meta charset="UTF-8">
       <title>Админка</title>
       <style>
-        body {{ font-family: Arial, sans-serif; padding: 20px; }}
-        table {{ border-collapse: collapse; width: 100%; margin-bottom: 32px; }}
-        th, td {{ border: 1px solid #ccc; padding: 8px; text-align: left; }}
-        th {{ background-color: #f5f5f5; }}
-        .clickable {{ cursor: pointer; color: #999; }}
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 32px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f5f5f5; }
+        .clickable { cursor: pointer; color: #999; }
       </style>
       <script>
-        function reveal(span, text) {{
+        function reveal(span, text) {
           span.innerText = text;
           span.style.color = '#000';
-        }}
+        }
       </script>
     </head>
     <body>
     <h1>Админка</h1>
-    <p><a href="/admin/gifts?id={uid}&username={user.get("username")}&auth_date={user.get("auth_date")}&hash={user.get("hash")}">Управление подарками</a></p>
     <table>
       <tr><th>Подарок</th><th>ID</th><th>Логин</th><th>Время (МСК)</th><th>Сброс</th></tr>
     """
-
 
     for r in rows:
         dt = datetime.fromtimestamp(r["timestamp"], tz=tz_msk).strftime("%Y-%m-%d %H:%M:%S")
@@ -206,132 +194,5 @@ def reset():
         cur.execute('DELETE FROM reserves WHERE gift_id=%s;', (gift_id,))
     return "OK"
 
-# @app.route('/admin/gifts', methods=['GET', 'POST'])
-# def edit_gifts():
-#     user = request.args
-#     uid = user.get("id")
-#     if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
-#         return "No access", 403
-
-#     with db.cursor() as cur:
-#         # Обработка POST (изменения)
-#         if request.method == 'POST':
-#             action = request.form.get('action')
-#             gift_id = request.form.get('gift_id')
-#             if action == 'delete':
-#                 cur.execute('DELETE FROM gifts WHERE id=%s;', (gift_id,))
-#             elif action == 'toggle_given':
-#                 cur.execute('UPDATE gifts SET given = NOT given WHERE id=%s;', (gift_id,))
-#             return redirect(request.url)
-
-#         # GET
-#         cur.execute("SELECT * FROM gifts ORDER BY category, id;")
-#         gifts = cur.fetchall()
-
-#     # Простая HTML-форма
-#     html_out = """
-#     <h1>Управление подарками</h1>
-#     <table border="1" cellpadding="8">
-#     <tr><th>ID</th><th>Название</th><th>Категория</th><th>Действия</th></tr>
-#     """
-#     for g in gifts:
-#         html_out += f"""
-#         <tr>
-#             <td>{g['id']}</td>
-#             <td>{html.escape(g['title'])}</td>
-#             <td>{html.escape(g['category'])}</td>
-#             <td>
-#                 <form method="post" style="display:inline">
-#                     <input type="hidden" name="gift_id" value="{g['id']}">
-#                     <button name="action" value="delete">Удалить</button>
-#                 </form>
-#                 <form method="post" style="display:inline">
-#                     <input type="hidden" name="gift_id" value="{g['id']}">
-#                     <button name="action" value="toggle_given">
-#                         {'Убрать статус' if g['given'] else 'Отметить подаренным'}
-#                     </button>
-#                 </form>
-#             </td>
-#         </tr>
-#         """
-#     html_out += "</table>"
-#     return html_out
-
-@app.route('/admin/gifts')
-def admin_gifts():
-    user = request.args
-    uid = user.get("id")
-    if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
-        return "No access", 403
-
-    with db.cursor() as cur:
-        cur.execute('SELECT * FROM gifts ORDER BY category, id;')
-        gifts = cur.fetchall()
-
-    html = """
-    <!DOCTYPE html>
-    <html lang="ru">
-    <head>
-      <meta charset="UTF-8">
-      <title>Редактировать подарки</title>
-      <style>
-        body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-        table { border-collapse: collapse; width: 100%; margin-bottom: 32px; }
-        th, td { border: 1px solid #ccc; padding: 6px 10px; }
-        th { background: #eee; }
-        input, textarea { width: 100%; margin-bottom: 6px; }
-        .given { color: gray; text-decoration: line-through; }
-      </style>
-    </head>
-    <body>
-      <h1>Редактор подарков</h1>
-
-      <h2>Добавить новый</h2>
-      <form method="post" action="/admin/gift/add?id={{id}}&username={{username}}&auth_date={{auth_date}}&hash={{hash}}">
-        <p><input name="title" placeholder="Название" required></p>
-        <p><textarea name="description" placeholder="Описание"></textarea></p>
-        <p><input name="link" placeholder="Ссылка (необязательно)"></p>
-        <p><input name="category" placeholder="Категория" required></p>
-        <p><button type="submit">Добавить</button></p>
-      </form>
-
-      <h2>Существующие подарки</h2>
-      <table>
-        <tr><th>ID</th><th>Название</th><th>Категория</th><th>Статус</th><th>Действия</th></tr>
-        {% for g in gifts %}
-          <tr class="{{ 'given' if g['given'] else '' }}">
-            <td>{{ g['id'] }}</td>
-            <td>{{ g['title'] }}</td>
-            <td>{{ g['category'] }}</td>
-            <td>{{ 'Подарено' if g['given'] else 'Ожидает' }}</td>
-            <td>
-              <form method="post" action="/admin/gift/delete?id={{id}}&username={{username}}&auth_date={{auth_date}}&hash={{hash}}" style="display:inline;">
-                <input type="hidden" name="id" value="{{ g['id'] }}">
-                <button type="submit">Удалить</button>
-              </form>
-              {% if not g['given'] %}
-              <form method="post" action="/admin/gift/given?id={{id}}&username={{username}}&auth_date={{auth_date}}&hash={{hash}}" style="display:inline;">
-                <input type="hidden" name="id" value="{{ g['id'] }}">
-                <button type="submit">Подарено</button>
-              </form>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-      </table>
-    </body>
-    </html>
-    """
-
-    return render_template_string(html,
-        gifts=gifts,
-        id=uid,
-        username=user.get("username"),
-        auth_date=user.get("auth_date"),
-        hash=user.get("hash")
-    )
-
-
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 10000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=10000)
