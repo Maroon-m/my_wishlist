@@ -211,7 +211,8 @@ def reset():
     gift_id = int(user.get('gift_id', 0))
     with db.cursor() as cur:
         cur.execute('DELETE FROM reserves WHERE gift_id=%s;', (gift_id,))
-    return "OK"
+    
+    return redirect(f"/admin?id={uid}&username={user.get('username')}&auth_date={user.get('auth_date')}&hash={user.get('hash')}")
 
 @app.route('/admin/gifts')
 def admin_gifts():
