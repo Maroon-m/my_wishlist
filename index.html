@@ -136,7 +136,17 @@
       if (!grouped[g.category]) grouped[g.category] = [];
       grouped[g.category].push(g);
     });
-    const categories = Object.keys(grouped).sort();
+    const preferredOrder = [
+      "Самые желанные",
+      "Здоровье",
+      "Полезности",
+      "Приятности",
+      "Универсальное",
+      "Данила, ты что, крейзи?"
+    ];
+        const categories = preferredOrder.concat(
+      Object.keys(grouped).filter(cat => !preferredOrder.includes(cat)).sort()
+    );
     for (const cat of categories) {
       if (!grouped[cat]) continue;
       const heading = document.createElement('div');
