@@ -78,6 +78,10 @@ def get_db():
 
 db = get_db()
 
+@app.route('/')
+def index():
+    return 'Wishlist backend is alive'
+
 @app.route('/wishlist')
 def wishlist():
     with db.cursor() as cur:
