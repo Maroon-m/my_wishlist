@@ -30,8 +30,8 @@ def get_db():
             title TEXT,
             description TEXT,
             link TEXT,
-            category TEXT
-            # given BOOLEAN DEFAULT FALSE
+            category TEXT,
+            given BOOLEAN DEFAULT FALSE
         );
         """)
         cur.execute("""
