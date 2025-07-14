@@ -52,26 +52,7 @@ def get_db():
 
         cur.execute("SELECT COUNT(*) FROM gifts;")
         if cur.fetchone()['count'] == 0:
-            sample = [
-                ("Модель Breyer Catch Me", "Можно выловить на <a href='https://www.avito.ru/sankt-peterburg/kollektsionirovanie/loshad_breyer_traditional_catch_me_19_7299481316' target='_blank'>Авито</a>"
-, "https://www.breyerhorses.com/products/catch-me", "Самые желанные"),
-                ("Instax фотоаппарат мгновенной печати", "Или беленький полароид, но он, кажется, ещё дороже :(", "https://www.ozon.ru/product/fotoapparat-mgnovennoy-pechati-fujifilm-mini-12-zelenyy-1047331780", "Самые желанные"),
-                ("Сессия с психологом", "", "", "Здоровье"),
-                ("МРФ-ролик", "", "", "Здоровье"),
-                ("Ручной отпариватель", "", "", "Полезности"),
-                ("Суповые тарелочки", "", "https://www.ozon.ru/product/tarelka-glubokaya-supovaya-1-1-l-magistro-tserera-salatnik-farforovyy-tsvet-seryy-496865823/", "Полезности"),
-                ("Набор кухонных полотенец из икеи", "Пример по ссылке", "https://www.ozon.ru/product/ikea-rinnig-polotentse-kuhonnoe-belyy-temno-seryy-s-risunkom-45x60-sm-1664361323/", "Полезности"),
-                ("Диффузор Hygge #4", "Источник гармонии", "", "Приятности"),
-                ("Скраб для тела", "Обожаю лемонграсс или что-то подобное", "", "Приятности"),
-                ("Энзимная пудра для умывания", "", "", "Приятности"),
-                ("Протеиновые вкусняхи", "(без шоколада, пример по ссылке)", "https://www.ozon.ru/product/fitnesshock-proteinovoe-pechene-bez-sahara-biskvit-romovaya-baba-10-sht-1683729709/", "Приятности"),
-                ("Креативные серьги", "", "", "Приятности"),
-                ("Сертификаты Ozon, Золотое Яблоко", "", "", "Универсальное"),
-                ("Подписка тг премиум", "", "", "Универсальное"),
-                ("Игровая приставка Sony PlayStation 5", "", "", "Данила, ты что, крейзи?"),
-                ("Виниловый проигрыватель", "", "", "Данила, ты что, крейзи?"),
-                ("Компактная рожковая кофемашина", "", "", "Данила, ты что, крейзи?"),
-            ]
+            sample = []
             for i, s in enumerate(sample, 1):
                 cur.execute("INSERT INTO gifts (id, title, description, link, category) VALUES (%s, %s, %s, %s, %s);", (i, *s))
         cur.execute("SELECT MAX(id) FROM gifts;")
@@ -83,18 +64,30 @@ def get_db():
 
 db = get_db()
 
-@app.route('/')
-def index():
-    return 'Backend is running!'
-    
+@app.route('/unreserve', methods=['POST'])
+def unreserve():
+    data = request.json
+    user = data.get('user')
+    gift_id = data.get('gift_id')
+    tg_id = user.get('id')
+
+    if not tg_id:
+        return jsonify({"error": "Ошибка входа, обратись к администратору сайта"}), 400
+
+    with db.cursor() as cur:
+        cur.execute('DELETE FROM reserves WHERE gift_id=%s AND tg_id=%s;', (gift_id, tg_id))
+    return jsonify({"ok": True})
+
 @app.route('/wishlist')
 def wishlist():
     with db.cursor() as cur:
         cur.execute('SELECT id, title, description, link, category, given FROM gifts;')
         gifts = []
         for row in cur.fetchall():
-            cur.execute('SELECT count(*) FROM reserves WHERE gift_id=%s;', (row['id'],))
-            reserved = cur.fetchone()['count'] > 0
+            cur.execute('SELECT tg_id FROM reserves WHERE gift_id=%s;', (row['id'],))
+            res = cur.fetchone()
+            reserved = res is not None
+            reserved_by = res['tg_id'] if res else None
             gifts.append(dict(
                 id=row['id'],
                 title=row['title'],
@@ -102,7 +95,8 @@ def wishlist():
                 link=row['link'],
                 category=row['category'],
                 reserved=reserved,
-                given=row['given']
+                given=row['given'],
+                user_id=reserved_by
             ))
         return jsonify(gifts)
 
