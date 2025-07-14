@@ -82,8 +82,10 @@
 <body>
 
 <h1>Привет! Это мой вишлист 🎁</h1>
-<p>Ниже список приятных штук, которые можно подарить. Чтобы забронировать — войди через Telegram 👇</p>
-
+<p>Не обязательно выбирать из списка, мне приятно любое внимание💕</p>
+<p>Но вот список вещиц, о которых я мечтаю или просто очень хочу😄</p>
+<p>Чтобы забронировать — войди через Telegram</p>
+  
 <!-- Telegram Login Widget -->
 <script async src="https://telegram.org/js/telegram-widget.js?22"
   data-telegram-login="MariiaWishlistBot" 
@@ -134,8 +136,18 @@
       if (!grouped[g.category]) grouped[g.category] = [];
       grouped[g.category].push(g);
     });
-
-    for (const cat of ["Самые желанные", "Здоровье", "Полезности", "Приятности", "Универсальное"]) {
+    const preferredOrder = [
+      "Самые желанные",
+      "Здоровье",
+      "Полезности",
+      "Приятности",
+      "Универсальное",
+      "Данила, ты что, крейзи?"
+    ];
+        const categories = preferredOrder.concat(
+      Object.keys(grouped).filter(cat => !preferredOrder.includes(cat)).sort()
+    );
+    for (const cat of categories) {
       if (!grouped[cat]) continue;
       const heading = document.createElement('div');
       heading.className = 'category';
