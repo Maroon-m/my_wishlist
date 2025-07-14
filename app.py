@@ -127,32 +127,33 @@ def admin():
         cur.execute('SELECT gift_id, tg_id, username, timestamp FROM reserves;')
         rows = cur.fetchall()
 
-    html_out = """
+    html_out = f"""
     <!DOCTYPE html>
     <html lang="ru">
     <head>
       <meta charset="UTF-8">
       <title>Админка</title>
       <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        table { border-collapse: collapse; width: 100%; margin-bottom: 32px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background-color: #f5f5f5; }
-        .clickable { cursor: pointer; color: #999; }
+        body {{ font-family: Arial, sans-serif; padding: 20px; }}
+        table {{ border-collapse: collapse; width: 100%; margin-bottom: 32px; }}
+        th, td {{ border: 1px solid #ccc; padding: 8px; text-align: left; }}
+        th {{ background-color: #f5f5f5; }}
+        .clickable {{ cursor: pointer; color: #999; }}
       </style>
       <script>
-        function reveal(span, text) {
+        function reveal(span, text) {{
           span.innerText = text;
           span.style.color = '#000';
-        }
+        }}
       </script>
     </head>
     <body>
     <h1>Админка</h1>
-    <p><a href="/admin/gifts?id={uid}&username={user.get("username")}&auth_date={user.get("auth_date")}&hash={user.get("hash")}">Управление подарками</a></p>
+    <p><a href="/admin/gifts?id={uid}&username={user.get("username")}&auth_date={user.get("auth_date")}&hash={user.get("hash")}">➕ Управление подарками</a></p>
     <table>
       <tr><th>Подарок</th><th>ID</th><th>Логин</th><th>Время (МСК)</th><th>Сброс</th></tr>
     """
+
 
     for r in rows:
         dt = datetime.fromtimestamp(r["timestamp"], tz=tz_msk).strftime("%Y-%m-%d %H:%M:%S")
