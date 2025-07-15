@@ -78,13 +78,13 @@ def unreserve():
     if not tg_id:
         return jsonify({"error": "Ошибка входа, обратись к администратору сайта"}), 400
 
-    with db.cursor() as cur:
+    with get_db().cursor() as cur:
         cur.execute('DELETE FROM reserves WHERE gift_id=%s AND tg_id=%s;', (gift_id, tg_id))
     return jsonify({"ok": True})
 
 @app.route('/wishlist')
 def wishlist():
-    with db.cursor() as cur:
+    with get_db().cursor() as cur:
         cur.execute('SELECT id, title, description, link, category, given FROM gifts;')
         gifts = []
         for row in cur.fetchall():
@@ -114,7 +114,7 @@ def reserve():
     if not tg_id:
         return jsonify({"error": "Ошибка входа, обратись к администратору сайта"}), 400
 
-    with db.cursor() as cur:
+    with get_db().cursor() as cur:
         cur.execute('SELECT count(*) FROM reserves WHERE tg_id=%s;', (tg_id,))
         if cur.fetchone()['count'] >= 3:
             cur.execute(
@@ -139,7 +139,7 @@ def admin():
 
     tz_msk = timezone(timedelta(hours=3))  # МСК
 
-    with db.cursor() as cur:
+    with get_db().cursor() as cur:
         cur.execute('SELECT gift_id, tg_id, username, timestamp FROM reserves;')
         rows = cur.fetchall()
 
@@ -186,7 +186,7 @@ def admin():
 
     html_out += "</table>"
 
-    with db.cursor() as cur:
+    with get_db().cursor() as cur:
         cur.execute("SELECT tg_id, username, timestamp FROM overlimit_attempts ORDER BY timestamp DESC LIMIT 10;")
         attempts = cur.fetchall()
 
@@ -213,7 +213,7 @@ def reset():
         return "No access", 403
 
     gift_id = int(user.get('gift_id', 0))
-    with db.cursor() as cur:
+    with get_db().cursor() as cur:
         cur.execute('DELETE FROM reserves WHERE gift_id=%s;', (gift_id,))
     
     return redirect(f"/admin?id={uid}&username={user.get('username')}&auth_date={user.get('auth_date')}&hash={user.get('hash')}")
@@ -225,7 +225,7 @@ def admin_gifts():
     if str(uid) not in map(str, ADMIN_IDS) or not verify_telegram(user):
         return "No access", 403
 
-    with db.cursor() as cur:
+    with get_db().cursor() as cur:
         cur.execute('SELECT * FROM gifts ORDER BY category, id;')
         gifts = cur.fetchall()
 
@@ -307,7 +307,7 @@ def add_gift():
 
     print(f"[ADD_GIFT] uid={uid}, title={title}, cat={cat}")
     
-    with db.cursor() as cur:
+    with get_db().cursor() as cur:
         cur.execute("""
             INSERT INTO gifts (title, description, link, category, given)
             VALUES (%s, %s, %s, %s, %s);
@@ -323,7 +323,7 @@ def delete_gift():
         return "No access", 403
 
     gift_id = request.form.get("id")
-    with db.cursor() as cur:
+    with get_db().cursor() as cur:
         cur.execute("DELETE FROM gifts WHERE id=%s;", (gift_id,))
     return redirect(f"/admin/gifts?id={uid}&username={user.get('username')}&auth_date={user.get('auth_date')}&hash={user.get('hash')}")
 
@@ -335,7 +335,7 @@ def mark_given():
         return "No access", 403
 
     gift_id = request.form.get("id")
-    with db.cursor() as cur:
+    with get_db().cursor() as cur:
         cur.execute("UPDATE gifts SET given = NOT given WHERE id=%s;", (gift_id,))
     return redirect(f"/admin/gifts?id={uid}&username={user.get('username')}&auth_date={user.get('auth_date')}&hash={user.get('hash')}")
 
