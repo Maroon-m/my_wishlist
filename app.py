@@ -64,6 +64,10 @@ def get_db():
 
 db = get_db()
 
+@app.route('/')
+def index():
+    return 'Wishlist backend is alive', 200
+
 @app.route('/unreserve', methods=['POST'])
 def unreserve():
     data = request.json
@@ -337,4 +341,6 @@ def mark_given():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
+
