@@ -82,6 +82,14 @@ def unreserve():
         cur.execute('DELETE FROM reserves WHERE gift_id=%s AND tg_id=%s;', (gift_id, tg_id))
     return jsonify({"ok": True})
 
+@app.route('/admin/receive_backup', methods=['POST'])
+def receive_backup():
+    if not is_admin(request.args): return "No access", 403
+    data = request.get_json()
+    with open("last_backup.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    return jsonify({"ok": True})
+
 @app.route('/wishlist')
 def wishlist():
     with get_db().cursor() as cur:
