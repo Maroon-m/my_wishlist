@@ -7,8 +7,8 @@ BACKUP_SECRET = os.getenv("BACKUP_SECRET", "supersecrettoken")
 BACKEND_URL = os.getenv("BACKEND_URL", "https://my-wishlist.onrender.com")
 
 # Маршруты
-GET_URL = f"{BACKEND_URL}/admin/backup?token={BACKUP_SECRET}"
-POST_URL = f"{BACKEND_URL}/admin/receive_backup?token={BACKUP_SECRET}"
+GET_URL = f"{BACKEND_URL}/admin/backup?token=supersecrettoken"
+POST_URL = f"{BACKEND_URL}/admin/receive_backup?token=supersecrettoken"
 
 # 1. Получить бэкап
 response = requests.get(GET_URL)
