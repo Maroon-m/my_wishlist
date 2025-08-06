@@ -91,7 +91,7 @@ def download_backup():
         return "No access", 403
 
     try:
-        with db.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        with db.cursor() as cur:
             # Сохраняем gifts
             cur.execute("SELECT * FROM gifts;")
             gifts = cur.fetchall()
