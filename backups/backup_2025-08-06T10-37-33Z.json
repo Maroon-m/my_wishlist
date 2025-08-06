@@ -1,0 +1,188 @@
+{
+  "gifts": [
+    {
+      "category": "Здоровье",
+      "description": "",
+      "given": false,
+      "id": 3,
+      "link": "",
+      "title": "Сессия с психологом"
+    },
+    {
+      "category": "Здоровье",
+      "description": "",
+      "given": false,
+      "id": 4,
+      "link": "",
+      "title": "МРФ-ролик"
+    },
+    {
+      "category": "Полезности",
+      "description": "",
+      "given": false,
+      "id": 5,
+      "link": "",
+      "title": "Ручной отпариватель"
+    },
+    {
+      "category": "Полезности",
+      "description": "",
+      "given": false,
+      "id": 6,
+      "link": "https://www.ozon.ru/product/tarelka-glubokaya-supovaya-1-1-l-magistro-tserera-salatnik-farforovyy-tsvet-seryy-496865823/",
+      "title": "Суповые тарелочки"
+    },
+    {
+      "category": "Полезности",
+      "description": "Пример по ссылке",
+      "given": false,
+      "id": 7,
+      "link": "https://www.ozon.ru/product/ikea-rinnig-polotentse-kuhonnoe-belyy-temno-seryy-s-risunkom-45x60-sm-1664361323/",
+      "title": "Набор кухонных полотенец из икеи"
+    },
+    {
+      "category": "Приятности",
+      "description": "Источник гармонии",
+      "given": false,
+      "id": 8,
+      "link": "",
+      "title": "Диффузор Hygge #4"
+    },
+    {
+      "category": "Приятности",
+      "description": "Обожаю лемонграсс или что-то подобное",
+      "given": false,
+      "id": 9,
+      "link": "",
+      "title": "Скраб для тела"
+    },
+    {
+      "category": "Приятности",
+      "description": "",
+      "given": false,
+      "id": 10,
+      "link": "",
+      "title": "Энзимная пудра для умывания"
+    },
+    {
+      "category": "Приятности",
+      "description": "(без шоколада, пример по ссылке)",
+      "given": false,
+      "id": 11,
+      "link": "https://www.ozon.ru/product/fitnesshock-proteinovoe-pechene-bez-sahara-biskvit-romovaya-baba-10-sht-1683729709/",
+      "title": "Протеиновые вкусняхи"
+    },
+    {
+      "category": "Приятности",
+      "description": "",
+      "given": false,
+      "id": 12,
+      "link": "",
+      "title": "Креативные серьги"
+    },
+    {
+      "category": "Универсальное",
+      "description": "",
+      "given": false,
+      "id": 13,
+      "link": "",
+      "title": "Сертификаты Ozon, Золотое Яблоко"
+    },
+    {
+      "category": "Универсальное",
+      "description": "",
+      "given": false,
+      "id": 14,
+      "link": "",
+      "title": "Подписка тг премиум"
+    },
+    {
+      "category": "Данила, ты что, крейзи?",
+      "description": "",
+      "given": false,
+      "id": 15,
+      "link": "",
+      "title": "Игровая приставка Sony PlayStation 5"
+    },
+    {
+      "category": "Данила, ты что, крейзи?",
+      "description": "",
+      "given": false,
+      "id": 16,
+      "link": "",
+      "title": "Виниловый проигрыватель"
+    },
+    {
+      "category": "Данила, ты что, крейзи?",
+      "description": "",
+      "given": false,
+      "id": 17,
+      "link": "",
+      "title": "Компактная рожковая кофемашина"
+    },
+    {
+      "category": "Здоровье",
+      "description": "кг на 3-5 наверно.. не уверена",
+      "given": false,
+      "id": 18,
+      "link": "",
+      "title": "Гантельки"
+    },
+    {
+      "category": "Самые желанные",
+      "description": "Или беленький полароид, но он, кажется, ещё дороже :(",
+      "given": false,
+      "id": 2,
+      "link": "https://www.ozon.ru/product/fotoapparat-mgnovennoy-pechati-fujifilm-mini-12-zelenyy-1047331780",
+      "title": "Instax фотоаппарат мгновенной печати"
+    },
+    {
+      "category": "Полезности",
+      "description": "С высокой скоростью записи и чтения, не меньше 64гб. Но если честно можно хоть какую-нибудь, я свою уже год найти не могу",
+      "given": false,
+      "id": 19,
+      "link": "",
+      "title": "Флешка"
+    },
+    {
+      "category": "Самые желанные",
+      "description": "Можно выловить на <a href='https://www.avito.ru/sankt-peterburg/kollektsionirovanie/loshad_breyer_traditional_catch_me_19_7299481316' target='_blank'>Авито</a>",
+      "given": true,
+      "id": 1,
+      "link": "https://www.breyerhorses.com/products/catch-me",
+      "title": "Модель Breyer Catch Me"
+    }
+  ],
+  "reserves": [
+    {
+      "gift_id": 17,
+      "tg_id": 1115903031,
+      "timestamp": 1752562306,
+      "username": "teriasha"
+    },
+    {
+      "gift_id": 14,
+      "tg_id": 1268750691,
+      "timestamp": 1752562729,
+      "username": "VoytenkoV"
+    },
+    {
+      "gift_id": 7,
+      "tg_id": 817989232,
+      "timestamp": 1752563606,
+      "username": "ymstvenno_ystalaya"
+    },
+    {
+      "gift_id": 5,
+      "tg_id": 5941701644,
+      "timestamp": 1752739302,
+      "username": ""
+    },
+    {
+      "gift_id": 2,
+      "tg_id": 1472376390,
+      "timestamp": 1754138633,
+      "username": "kgorlov"
+    }
+  ]
+}
