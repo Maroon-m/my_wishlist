@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, timezone
 from flask_cors import CORS
 import psycopg
 import json
-import psycopg2.extras
 from psycopg.rows import dict_row
 
 app = Flask(__name__)
