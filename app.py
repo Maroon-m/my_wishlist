@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from flask_cors import CORS
 import psycopg
 import json
+import psycopg2.extras
 from psycopg.rows import dict_row
 
 app = Flask(__name__)
@@ -90,12 +91,39 @@ def download_backup():
     if token != BACKUP_SECRET:
         return "No access", 403
 
-    with db.cursor() as cur:
-        cur.execute("SELECT * FROM gifts;")
-        gifts = cur.fetchall()
-        cur.execute("SELECT * FROM reserves;")
-        reserves = cur.fetchall()
-    return jsonify({"gifts": gifts, "reserves": reserves})
+    try:
+        with db.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            # Сохраняем gifts
+            cur.execute("SELECT * FROM gifts;")
+            gifts = cur.fetchall()
+            gifts_columns = [desc.name for desc in cur.description]
+
+            # Сохраняем reserves
+            cur.execute("SELECT * FROM reserves;")
+            reserves = cur.fetchall()
+            reserves_columns = [desc.name for desc in cur.description]
+
+        # Формируем структуру для бэкапа
+        backup_data = {
+            "gifts": {
+                "columns": gifts_columns,
+                "rows": [list(row.values()) for row in gifts]
+            },
+            "reserves": {
+                "columns": reserves_columns,
+                "rows": [list(row.values()) for row in reserves]
+            }
+        }
+
+        return app.response_class(
+            response=json.dumps(backup_data, ensure_ascii=False, indent=2),
+            status=200,
+            mimetype='application/json'
+        )
+
+    except Exception as e:
+        print("Ошибка при сборе бэкапа:", str(e))
+        return f"Backup failed: {e}", 500
     
 @app.route('/admin/receive_backup', methods=['POST']) 
 def receive_backup():
