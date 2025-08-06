@@ -2,8 +2,8 @@ name: Hourly Backup
 
 on:
   schedule:
-    - cron: '0 * * * *'  # каждый час
-  workflow_dispatch:     # можно запустить вручную
+    - cron: '0/10 * * * *'  # каждые 10 минут
+  workflow_dispatch:
 
 jobs:
   backup:
@@ -12,21 +12,25 @@ jobs:
       - name: Checkout репозиторий
         uses: actions/checkout@v3
 
-      - name: Установить зависимости
+      - name: Установить Python и зависимости
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Установить requests
         run: pip install requests
 
-      - name: Скачать и сохранить бэкап
+      - name: Запустить скрипт бэкапа
         env:
-          BACKUP_URL: ${{ secrets.BACKUP_URL }}
+          BACKUP_URL: ${{ secrets.BACKUP_URL }}              # https://my-wishlist.onrender.com/admin/backup (GET)
+          BACKUP_RECEIVE_URL: ${{ secrets.BACKUP_RECEIVE_URL }}  # https://my-wishlist.onrender.com/admin/backup?token=...
         run: |
-          mkdir -p backups
-          timestamp=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
-          curl "$BACKUP_URL" > backups/backup_$timestamp.json
+          python backup.py
 
       - name: Коммит и пуш
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add backups/
-          git commit -m "Автобэкап $timestamp" || echo "Нечего коммитить"
+          git commit -m "Автобэкап $(date -u +"%Y-%m-%dT%H-%M-%SZ")" || echo "Нечего коммитить"
           git push
