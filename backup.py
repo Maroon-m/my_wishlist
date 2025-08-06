@@ -1,30 +1,25 @@
 import requests
 import os
+import json
 
-BACKEND_URL = os.getenv("BACKEND_URL", "https://my-wishlist.onrender.com")
-ADMIN_ID = os.getenv("ADMIN_ID", "877872483")
-USERNAME = os.getenv("USERNAME")
-AUTH_DATE = os.getenv("AUTH_DATE")
-HASH = os.getenv("HASH")
+# URL получения бэкапа
+BACKUP_URL = os.getenv("BACKUP_URL", "https://my-wishlist.onrender.com/admin/backup")
 
-BACKUP_ROUTE = f"{BACKEND_URL}/admin/backup"
-RECEIVE_ROUTE = f"{BACKEND_URL}/admin/receive_backup"
+# URL, куда отправляется бэкап
+RECEIVE_URL = os.getenv("BACKUP_RECEIVE_URL", "https://my-wishlist.onrender.com/admin/backup?token=supersecrettoken")
 
-res = requests.get(BACKUP_ROUTE, params={
-    "id": ADMIN_ID,
-    "username": USERNAME,
-    "auth_date": AUTH_DATE,
-    "hash": HASH
-})
+# Получить бэкап
+response = requests.get(BACKUP_URL)
+response.raise_for_status()
+data = response.json()
 
-if res.ok:
-    backup_data = res.json()
-    resp = requests.post(RECEIVE_ROUTE, params={
-        "id": ADMIN_ID,
-        "username": USERNAME,
-        "auth_date": AUTH_DATE,
-        "hash": HASH
-    }, json=backup_data)
-    print("Backup sent:", resp.status_code)
-else:
-    print("Backup failed:", res.status_code)
+# Сохраняем локально
+timestamp = os.popen("date -u +%Y-%m-%dT%H-%M-%SZ").read().strip()
+backup_path = f"backups/backup_{timestamp}.json"
+with open(backup_path, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+
+# Отправить обратно
+res = requests.post(RECEIVE_URL, json=data)
+res.raise_for_status()
+print("Backup sent to server successfully.")
