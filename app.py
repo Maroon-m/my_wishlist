@@ -11,6 +11,7 @@ CORS(app)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_IDS = [877872483]
 DATABASE_URL = os.getenv("DATABASE_URL")
+BACKUP_SECRET = os.getenv("BACKUP_SECRET", "supersecrettoken")
 
 def verify_telegram(data):
     check = "\n".join(f"{k}={data[k]}" for k in sorted(data) if k not in ['hash', 'gift_id'])
@@ -82,9 +83,12 @@ def unreserve():
         cur.execute('DELETE FROM reserves WHERE gift_id=%s AND tg_id=%s;', (gift_id, tg_id))
     return jsonify({"ok": True})
 
-@app.route('/admin/backup', methods=['POST'])
+@app.route('/admin/backup', methods=['POST']) 
 def receive_backup():
-    if not is_admin(request.args): return "No access", 403
+    token = request.args.get("token")
+    if token != BACKUP_SECRET:
+        return "No access", 403
+
     data = request.get_json()
     with open("last_backup.json", "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
