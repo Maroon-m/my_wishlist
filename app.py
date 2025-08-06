@@ -83,7 +83,20 @@ def unreserve():
         cur.execute('DELETE FROM reserves WHERE gift_id=%s AND tg_id=%s;', (gift_id, tg_id))
     return jsonify({"ok": True})
 
-@app.route('/admin/backup', methods=['POST']) 
+@app.route('/admin/backup', methods=['GET'])
+def download_backup():
+    token = request.args.get("token")
+    if token != BACKUP_SECRET:
+        return "No access", 403
+
+    with db.cursor() as cur:
+        cur.execute("SELECT * FROM gifts;")
+        gifts = cur.fetchall()
+        cur.execute("SELECT * FROM reserves;")
+        reserves = cur.fetchall()
+    return jsonify({"gifts": gifts, "reserves": reserves})
+    
+@app.route('/admin/receive_backup', methods=['POST']) 
 def receive_backup():
     token = request.args.get("token")
     if token != BACKUP_SECRET:
