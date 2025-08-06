@@ -9,25 +9,25 @@ jobs:
   backup:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout репозиторий
+      - name: checkout repo
         uses: actions/checkout@v3
 
-      - name: Установить Python и зависимости
+      - name: setup Python and requirements
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Установить requests
+      - name: install requests
         run: pip install requests
 
-      - name: Запустить скрипт бэкапа
+      - name: run backup script
         env:
           BACKUP_URL: ${{ secrets.BACKUP_URL }}              # https://my-wishlist.onrender.com/admin/backup (GET)
           BACKUP_RECEIVE_URL: ${{ secrets.BACKUP_RECEIVE_URL }}  # https://my-wishlist.onrender.com/admin/backup?token=...
         run: |
           python backup.py
 
-      - name: Коммит и пуш
+      - name: commit and push
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
