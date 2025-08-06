@@ -24,8 +24,8 @@ jobs:
 
       - name: run backup script
         env:
-          BACKUP_URL: ${{ secrets.BACKUP_URL }}              # https://my-wishlist.onrender.com/admin/backup (GET)
-          BACKUP_RECEIVE_URL: ${{ secrets.BACKUP_RECEIVE_URL }}  # https://my-wishlist.onrender.com/admin/backup?token=...
+          BACKUP_SECRET: ${{ secrets.BACKUP_SECRET }}
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
         run: |
           python backup.py
 
