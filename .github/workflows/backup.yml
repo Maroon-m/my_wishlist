@@ -9,33 +9,32 @@ jobs:
   backup:
     runs-on: ubuntu-22.04
     steps:
-      - name: checkout repo
+      - name: Checkout backups branch
         uses: actions/checkout@v3
         with:
+          ref: backups
           fetch-depth: 0
 
-      - name: setup Python and requirements
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: install requests
+      - name: Install dependencies
         run: pip install requests
 
-      - name: run backup script
+      - name: Run backup script
         env:
           BACKUP_SECRET: ${{ secrets.BACKUP_SECRET }}
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
         run: |
-          python backup.py
-          timestamp=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
+          mkdir -p backups
+          python backup.py backups/backup.json
 
-      - name: commit and push
+      - name: Commit and push backups
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git fetch origin backups || true
-          git checkout -B backups
-          git add backups/
-          git commit -m "Autobackup $timestamp" || echo "Нечего коммитить"
+          git add backups/backup.json
+          git commit -m "Update backup" || echo "Нечего коммитить"
           git push origin backups
