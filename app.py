@@ -94,7 +94,7 @@ def download_backup():
         return "No access", 403
 
     try:
-        conn = psycopg.connect(DB_URL)
+        conn = psycopg.connect(DATABASE_URL)
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM gifts;")
             gifts = cur.fetchall()
