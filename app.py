@@ -84,6 +84,9 @@ def unreserve():
         cur.execute('DELETE FROM reserves WHERE gift_id=%s AND tg_id=%s;', (gift_id, tg_id))
     return jsonify({"ok": True})
 
+import psycopg
+import json
+
 @app.route('/admin/backup', methods=['GET'])
 def download_backup():
     token = request.args.get("token")
@@ -91,27 +94,22 @@ def download_backup():
         return "No access", 403
 
     try:
-        with db.cursor() as cur:
-            # Сохраняем gifts
+        conn = psycopg.connect(DB_URL)
+        with conn.cursor() as cur:
             cur.execute("SELECT * FROM gifts;")
             gifts = cur.fetchall()
-            gifts_columns = [desc.name for desc in cur.description]
-
-            # Сохраняем reserves
             cur.execute("SELECT * FROM reserves;")
             reserves = cur.fetchall()
-            reserves_columns = [desc.name for desc in cur.description]
+        conn.close()
 
-        # Формируем структуру для бэкапа
+        def safe(obj):
+            if isinstance(obj, (bytes, bytearray)):
+                return obj.decode("utf-8", errors="replace")
+            return str(obj)
+
         backup_data = {
-            "gifts": {
-                "columns": gifts_columns,
-                "rows": [list(row.values()) for row in gifts]
-            },
-            "reserves": {
-                "columns": reserves_columns,
-                "rows": [list(row.values()) for row in reserves]
-            }
+            "gifts": [[safe(item) for item in row] for row in gifts],
+            "reserves": [[safe(item) for item in row] for row in reserves],
         }
 
         return app.response_class(
@@ -123,6 +121,7 @@ def download_backup():
     except Exception as e:
         print("Ошибка при сборе бэкапа:", str(e))
         return f"Backup failed: {e}", 500
+
     
 @app.route('/admin/receive_backup', methods=['POST']) 
 def receive_backup():
